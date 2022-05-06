@@ -11,6 +11,9 @@ namespace H2ARipper
 
     public static string ReadFixedLengthString( this BinaryReader reader, int length )
     {
+      if ( length <= 0 )
+        return null;
+
       var sb = new StringBuilder();
 
       for ( var i = 0; i < length; i++ )

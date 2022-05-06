@@ -20,8 +20,9 @@
       using var fs = File.OpenRead( _filePath );
       using var reader = new BinaryReader( fs );
 
-      ReadHeader( reader );
-      ReadTextureNames( reader );
+      //ReadHeader( reader );
+      //ReadTPL1Block( reader );
+      //ReadTextureNames( reader );
       ReadOgmBlock( reader );
     }
 
@@ -60,10 +61,19 @@
       _ = reader.ReadInt64(); // Unk: Flags/Count?
       _ = reader.ReadInt64(); // Unk: Address?
       _ = reader.ReadInt32(); // Unk: Null/reserved?
-      reader.Seek( 0x1C, SeekOrigin.Current ); // Unk data
 
-      //===============================================================
+      reader.Seek( 0x10, SeekOrigin.Current ); // Unk data: guid?
 
+      _ = reader.ReadInt32(); // Unk: Count?
+      _ = reader.ReadInt32(); // Unk: Count?
+
+      // I think this is some sort of metadata. Skipping.
+      var metadataBytes = reader.ReadInt32();
+      reader.Seek( metadataBytes, SeekOrigin.Current );
+    }
+
+    private void ReadTPL1Block( BinaryReader reader )
+    {
       const int MAGIC_TPL1 = 0x314C5054;
       Assert( reader.ReadInt32(), MAGIC_TPL1, "Invalid TPL1 Magic." );
 
@@ -73,7 +83,18 @@
       var modelNameLength = reader.ReadInt32();
       var modelName = reader.ReadFixedLengthString( modelNameLength );
 
-      reader.Seek( 0x1E, SeekOrigin.Current ); // Unknown Data
+      _ = reader.ReadInt16(); // Unk: Type?
+      _ = reader.ReadInt32(); // Unk: Length/count?
+
+      var exportStringLength = reader.ReadInt32();
+      var exportString = reader.ReadFixedLengthString( exportStringLength );
+
+      var typeStringLength = reader.ReadInt32();
+      var typeString = reader.ReadFixedLengthString( typeStringLength );
+
+      _ = reader.ReadInt32(); // Unk: Count?
+      _ = reader.ReadInt16(); // Unk: Count?
+      _ = reader.ReadByte(); // Unk
     }
 
     private void ReadTextureNames( BinaryReader reader )
@@ -99,29 +120,53 @@
 
     private void ReadOgmBlock( BinaryReader reader )
     {
+      FindOGM1( reader.BaseStream ); // TODO: Not this
+
       const int MAGIC_OGM1 = 0x314D474F;
       Assert( reader.ReadInt32(), MAGIC_OGM1, "Invalid OGM Magic" );
 
-      reader.Seek( 0x7, SeekOrigin.Current ); // Unk data
-      var nodeCount = reader.ReadInt32();
-      _ = reader.ReadInt32(); // Unk: count?
+      // Scale/Pos XYZ?
+      _ = reader.ReadInt16();
+      _ = reader.ReadInt16();
+      _ = reader.ReadInt16();
 
-      var nodeIdArray = new short[ nodeCount ];
-      var boneNameArray = new string[ nodeCount ];
+      _ = reader.ReadByte();
 
-      // Read NodeId Array
-      //if ( reader.ReadByte() > 0 )
-      //{
-      //  for ( var i = 0; i < nodeCount; i++ )
-      //    nodeIdArray[ i ] = reader.ReadInt16();
-      //}
-      for ( var j = 0; j < 11; j++ )
+      var nodeCount = reader.ReadInt16();
+
+      // Scale/POS XYZ?
+      _ = reader.ReadInt16();
+      _ = reader.ReadInt16();
+      _ = reader.ReadInt16();
+
+      _ = reader.ReadByte();
+
+      var nodeIndices = new List<short>();
+      for ( var i = 0; i < nodeCount; i++ )
+        nodeIndices.Add( reader.ReadInt16() );
+
+      _ = reader.ReadByte(); // sep?
+
+      // Unknown 1
+      for ( var i = 0; i < nodeCount; i++ )
       {
-        if ( reader.ReadByte() > 0 )
-          for ( var i = 0; i < nodeCount; i++ )
-            _ = reader.ReadByte();
+        reader.ReadInt32();
+        reader.ReadInt16();
+        reader.ReadByte();
       }
 
+      _ = reader.ReadByte(); // sep?
+      _ = reader.ReadByte(); // sep?
+
+      // Unknown 2
+      for ( var i = 0; i < nodeCount; i++ )
+      {
+        _ = reader.ReadInt16();
+        _ = reader.ReadInt16();
+        _ = reader.ReadInt16();
+      }
+
+      reader.ReadByte();
 
     }
 
@@ -131,6 +176,29 @@
     {
       if ( !actual.Equals( expected ) )
         throw new Exception( message );
+    }
+
+    private void FindOGM1( Stream Stream )
+    {
+      Stream.Position = 0;
+      long found = -1;
+      int curr;
+      while ( ( curr = Stream.ReadByte() ) > -1 )
+      {
+        if ( curr == 'O' )
+        {
+          byte[] buffer = new byte[ 3 ];
+          Stream.Read( buffer, 0, 3 );
+          if ( buffer[ 0 ] == 'G' && buffer[ 1 ] == 'M' && buffer[ 2 ] == '1' )
+          {
+            found = Stream.Position - 4;
+            break;
+          }
+        }
+      }
+
+      if ( found > -1 )
+        Stream.Position = found;
     }
 
   }
