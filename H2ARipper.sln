@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "H2ARipper", "H2ARipper\H2ARipper.csproj", "{179F5648-3B55-4D93-AB98-D8AE5503EADA}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{179F5648-3B55-4D93-AB98-D8AE5503EADA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{179F5648-3B55-4D93-AB98-D8AE5503EADA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{179F5648-3B55-4D93-AB98-D8AE5503EADA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{179F5648-3B55-4D93-AB98-D8AE5503EADA}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E9BAC72E-0C87-4447-B463-0E2EB5DBC181}
+	EndGlobalSection
+EndGlobal
