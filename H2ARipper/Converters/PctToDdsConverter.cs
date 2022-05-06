@@ -92,6 +92,7 @@ namespace H2ARipper.Converters
       Console.WriteLine( "{0}>{1} - {2} - {3}", header.Format.ToString(), format.ToString(), header.Width, inFile );
 
       var task = Cli.Wrap( @".\Binaries\RawtexCmd.exe" )
+        .WithWorkingDirectory( @".\Binaries\" )
         .WithArguments( x => x
           .Add( inFile )
           .Add( ( int ) GetDxgiFormat( header.Format ) )
