@@ -7,7 +7,9 @@ const string OUT_PATH = @"G:\h2a\d\";
 
 //DecompressAll();
 //await ExtractAll();
-ConvertAllTextures();
+//ConvertAllTextures();
+
+ReadTpl( @"G:\h2a\d\01b_spacestation\_scene_\tpl\sm_geom_00008.tpl" );
 
 void DecompressAll()
 {
@@ -65,4 +67,9 @@ void ConvertAllTextures()
       Console.WriteLine( "{0} - {1}", ex.Message, pctFile );
     }
   } );
+}
+
+void ReadTpl( string path )
+{
+  var tpl = TplFile.Open( path );
 }
