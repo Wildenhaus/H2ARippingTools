@@ -1,4 +1,7 @@
-﻿namespace H2ARipper.Converters
+﻿// WORK IN PROGRESS
+// Currently basing this off of the MaxScript provided by sleepyzay
+
+namespace H2ARipper.Converters
 {
 
   public static class TplToDaeConverter
