@@ -24,6 +24,7 @@
       //ReadTPL1Block( reader );
       //ReadTextureNames( reader );
       ReadOgmBlock( reader );
+      ReadChunks( reader );
     }
 
     #region Read Methods
@@ -139,35 +140,273 @@
       _ = reader.ReadInt16();
       _ = reader.ReadInt16();
 
-      _ = reader.ReadByte();
-
-      var nodeIndices = new List<short>();
-      for ( var i = 0; i < nodeCount; i++ )
-        nodeIndices.Add( reader.ReadInt16() );
-
-      _ = reader.ReadByte(); // sep?
-
-      // Unknown 1
-      for ( var i = 0; i < nodeCount; i++ )
+      // Section - Node Indices
+      if ( reader.ReadBoolean() )
       {
-        reader.ReadInt32();
-        reader.ReadInt16();
-        reader.ReadByte();
+        var nodeIndices = new List<short>();
+        for ( var i = 0; i < nodeCount; i++ )
+          nodeIndices.Add( reader.ReadInt16() );
       }
 
-      _ = reader.ReadByte(); // sep?
-      _ = reader.ReadByte(); // sep?
-
-      // Unknown 2
-      for ( var i = 0; i < nodeCount; i++ )
+      // Unknown Section 1 - Bone Names?
+      if ( reader.ReadBoolean() )
       {
-        _ = reader.ReadInt16();
-        _ = reader.ReadInt16();
-        _ = reader.ReadInt16();
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          var boneNameLength = reader.ReadInt32();
+          var boneName = reader.ReadFixedLengthString( boneNameLength );
+        }
       }
 
-      reader.ReadByte();
+      // Unknown Section 2
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          reader.ReadInt32();
+          reader.ReadInt16();
+          reader.ReadByte();
+        }
+      }
 
+      // Unknown Section 3
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+          _ = reader.ReadInt16(); // Unk: Index
+      }
+
+      // Unknown Section 4
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+          _ = reader.ReadInt16(); // Unk: Index
+      }
+
+      // Unknown Section 5
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+          _ = reader.ReadInt16(); // Unk: Index
+      }
+
+      // Unknown Section 6
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+          _ = reader.ReadInt16();
+      }
+
+      // Unknown Section 7
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+          _ = reader.ReadInt16();
+      }
+
+      // Unknown Section 8 - Export Strings?
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          var exportStringLength = reader.ReadInt32();
+          var exportString = reader.ReadFixedLengthString( exportStringLength );
+        }
+      }
+
+      // Unknown Section 9 - Bone Matrices?
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+        }
+      }
+
+      // Unknown Section 10 - Another Matrix?
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+          reader.ReadSingle();
+        }
+      }
+
+      // Unknown Section 11
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          reader.ReadSingle();
+          reader.ReadSingle();
+        }
+      }
+
+      // TODO: HACK - this wont work
+      // TODO: Idk how to read Section 11, it doesn't align with the node count.
+      // Start marker is 0x02 instead of 0x01. Might have count elsewhere?
+      reader.BaseStream.Position = 0x319f;
+
+      // Section 12 - Bone Chains?
+      if ( reader.ReadBoolean() )
+      {
+        var x = 0;
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          if ( reader.BaseStream.Position >= 0x3E00 )
+            System.Diagnostics.Debugger.Break();
+
+          x++;
+          var chainStringLength = reader.ReadInt32();
+          var chainString = reader.ReadFixedLengthString( chainStringLength );
+        }
+      }
+
+      // Section 13 - Padding?
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          for ( var j = 0; j < 60; j++ )
+            reader.ReadByte();
+        }
+      }
+
+      // Section 14 - Bone Names? Strings?
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          var boneNameLen = reader.ReadInt16();
+          var boneName = reader.ReadFixedLengthString( boneNameLen );
+        }
+      }
+
+      // Section 15 - Export Strings?
+      if ( reader.ReadBoolean() )
+      {
+        for ( var i = 0; i < nodeCount; i++ )
+        {
+          var exportNameLen = reader.ReadInt16();
+          var exportName = reader.ReadFixedLengthString( exportNameLen );
+        }
+      }
+
+    }
+
+    private void ReadChunks( BinaryReader reader )
+    {
+      var chunkTag = reader.ReadInt16();
+      var chunkEnd = reader.ReadInt32();
+
+      var rootNodeIndex = reader.ReadInt16() + 1;
+      var nodeCount = reader.ReadInt32();
+      var bufferCount = reader.ReadInt32();
+      var meshCount = reader.ReadInt32();
+      var subMeshCount = reader.ReadInt32();
+
+      _ = reader.ReadInt64();
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+
+      var bufferTypes = new BufferType[ bufferCount ];
+      for ( var i = 0; i < bufferCount; i++ )
+        bufferTypes[ i ] = BufferType.Read( reader );
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+      var bufferElemSizeArray = new ushort[ bufferCount ];
+      for ( var i = 0; i < bufferCount; i++ )
+        bufferElemSizeArray[ i ] = reader.ReadUInt16();
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+      var bufferLengthArray = new uint[ bufferCount ];
+      for ( var i = 0; i < bufferCount; i++ )
+        bufferLengthArray[ i ] = reader.ReadUInt32();
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+      var bufferInfo = new BufferInfo();
+      for ( var i = 0; i < bufferCount; i++ )
+      {
+        switch ( bufferTypes[ i ].Type )
+        {
+          case 0x00:
+            bufferInfo.FaceBufferOffset = reader.BaseStream.Position;
+            break;
+          case 0x02:
+            bufferInfo.Unk_FaceOffset = reader.BaseStream.Position;
+            break;
+          case 0x0C:
+            bufferInfo.StaticVertBufferOffset = reader.BaseStream.Position;
+            break;
+          case 0x0F:
+            bufferInfo.SkinnedVertBufferOffset = reader.BaseStream.Position;
+            break;
+          case 0x10:
+            bufferInfo.NormalTextureVertBufferOffset = reader.BaseStream.Position;
+            break;
+          case 0x30:
+            bufferInfo.Unk_VertexOffset30 = reader.BaseStream.Position;
+            break;
+          case 0x70:
+            bufferInfo.Unk_VertexOffset70 = reader.BaseStream.Position;
+            break;
+          default:
+            throw new Exception( $"Unparsed buffer type: 0x{bufferTypes[ i ].Type:X}" );
+        }
+
+        reader.Seek( bufferLengthArray[ i ], SeekOrigin.Current );
+      }
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+      var meshDataArray = new MeshData[ meshCount ][];
+      for ( var i = 0; i < meshCount; i++ )
+      {
+        var subArraySize = reader.ReadByte();
+        meshDataArray[ i ] = new MeshData[ subArraySize ];
+        for ( var j = 0; j < subArraySize; j++ )
+          meshDataArray[ i ][ j ] = MeshData.Read( reader );
+      }
     }
 
     #endregion
@@ -200,6 +439,60 @@
       if ( found > -1 )
         Stream.Position = found;
     }
+
+    #region Embedded Types
+
+    internal struct BufferType
+    {
+      public ushort Unk_01;
+      public byte Unk_02;
+      public byte Type;
+      public byte Unk_04;
+      public byte Unk_05;
+      public uint Unk_06;
+
+      public static BufferType Read( BinaryReader reader )
+      {
+        return new BufferType
+        {
+          Unk_01 = reader.ReadUInt16(),
+          Unk_02 = reader.ReadByte(),
+          Type = reader.ReadByte(),
+          Unk_04 = reader.ReadByte(),
+          Unk_05 = reader.ReadByte(),
+          Unk_06 = reader.ReadUInt32()
+        };
+      }
+    }
+
+    internal class BufferInfo
+    {
+      public long FaceBufferOffset;
+      public long Unk_BufferOffset;
+      public long StaticVertBufferOffset;
+      public long SkinnedVertBufferOffset;
+      public long NormalTextureVertBufferOffset;
+      public long Unk_FaceOffset;
+      public long Unk_VertexOffset30;
+      public long Unk_VertexOffset70;
+    }
+
+    internal struct MeshData
+    {
+      public uint BufferId;
+      public uint SubBufferOffset;
+
+      public static MeshData Read( BinaryReader reader )
+      {
+        return new MeshData
+        {
+          BufferId = reader.ReadUInt32(),// + 1
+          SubBufferOffset = reader.ReadUInt32()
+        };
+      }
+    }
+
+    #endregion
 
   }
 
