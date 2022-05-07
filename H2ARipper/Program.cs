@@ -8,7 +8,7 @@ const string OUT_PATH = @"G:\h2a\d\";
 //DecompressAll();
 //await ExtractAll();
 //ConvertAllTextures();
-//ReadTpl( @"G:\h2a\d\shared\_database_\marine__h.tpl" );
+//ReadTpl( @"G:\h2a\d\shared\_database_\ss_prop__h.tpl" );
 ReadTpl( @"G:\h2a\d\shared\_database_\masterchief_fp__h.tpl" );
 ReadTpl( @"G:\h2a\d\shared\_database_\banshee__h.tpl" );
 ReadTpl( @"G:\h2a\d\01b_spacestation\_scene_\tpl\sm_geom_00008.tpl" );
@@ -74,4 +74,19 @@ void ConvertAllTextures()
 void ReadTpl( string path )
 {
   var tpl = TplFile.Open( path );
+}
+
+void ReadAllTpls()
+{
+  foreach ( var tplFile in Directory.EnumerateFiles( OUT_PATH, "*.tpl", SearchOption.AllDirectories ) )
+  {
+    try
+    {
+      ReadTpl( tplFile );
+    }
+    catch ( Exception ex )
+    {
+      Console.WriteLine( "Failed to read {0}", tplFile );
+    }
+  }
 }

@@ -22,6 +22,15 @@ namespace H2ARipper
       return sb.ToString();
     }
 
+    public static int PeekInt32( this BinaryReader reader )
+    {
+      var startPos = reader.BaseStream.Position;
+      var value = reader.ReadInt32();
+      reader.BaseStream.Position = startPos;
+
+      return value;
+    }
+
   }
 
 }

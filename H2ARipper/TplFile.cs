@@ -24,7 +24,7 @@
       //ReadTPL1Block( reader );
       //ReadTextureNames( reader );
       ReadOgmBlock( reader );
-      ReadChunks( reader );
+      //ReadChunks( reader );
     }
 
     #region Read Methods
@@ -121,6 +121,11 @@
 
     private void ReadOgmBlock( BinaryReader reader )
     {
+      /* Notes:
+       * Each section starting with 0x00 is empty. Skip.
+       * Each section starting with 0x08 seems to be related to scripting.
+       */
+
       FindOGM1( reader.BaseStream ); // TODO: Not this
 
       const int MAGIC_OGM1 = 0x314D474F;
@@ -262,20 +267,44 @@
         }
       }
 
-      // Unknown Section 11
-      if ( reader.ReadBoolean() )
+      // The Fuck-You Section
+      // I have no idea what this is or how to properly parse it
+      // It has 0x0700000003 every 0x20 bytes followed by some floats
+      if ( reader.ReadByte() == 0x02 )
       {
-        for ( var i = 0; i < nodeCount; i++ )
+        for ( var i = 0; i < 0x100; i++ )
         {
-          reader.ReadSingle();
-          reader.ReadSingle();
+          var peek = reader.PeekInt32();
+          if ( peek == 0x03 )
+            break;
+
+          reader.BaseStream.Position++;
+        }
+
+        while ( true )
+        {
+          while ( reader.PeekInt32() == 0x03 )
+            reader.BaseStream.Position += 0x25;
+
+          var originalPos = reader.BaseStream.Position;
+
+          var peek = 0;
+          for ( var i = 0; i < 0x20; i++ )
+          {
+            peek = reader.PeekInt32();
+            if ( peek == 0x03 )
+              break;
+
+            reader.BaseStream.Position++;
+          }
+
+          if ( peek != 0x03 )
+          {
+            reader.BaseStream.Position = originalPos;
+            break;
+          }
         }
       }
-
-      // TODO: HACK - this wont work
-      // TODO: Idk how to read Section 11, it doesn't align with the node count.
-      // Start marker is 0x02 instead of 0x01. Might have count elsewhere?
-      reader.BaseStream.Position = 0x319f;
 
       // Section 12 - Bone Chains?
       if ( reader.ReadBoolean() )
@@ -283,9 +312,6 @@
         var x = 0;
         for ( var i = 0; i < nodeCount; i++ )
         {
-          if ( reader.BaseStream.Position >= 0x3E00 )
-            System.Diagnostics.Debugger.Break();
-
           x++;
           var chainStringLength = reader.ReadInt32();
           var chainString = reader.ReadFixedLengthString( chainStringLength );
@@ -407,6 +433,19 @@
         for ( var j = 0; j < subArraySize; j++ )
           meshDataArray[ i ][ j ] = MeshData.Read( reader );
       }
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+      var unkMeshTableArray = new UnkMeshTable[ meshCount ];
+      for ( var i = 0; i < unkMeshTableArray.Length; i++ )
+        unkMeshTableArray[ i ] = UnkMeshTable.Read( reader );
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+
     }
 
     #endregion
@@ -488,6 +527,29 @@
         {
           BufferId = reader.ReadUInt32(),// + 1
           SubBufferOffset = reader.ReadUInt32()
+        };
+      }
+    }
+
+    internal struct UnkMeshTable
+    {
+      public ushort Unk_1;
+      public byte Unk_2;
+      public byte Unk_3;
+      public byte Unk_4;
+      public byte Unk_5;
+      public uint Unk_6;
+
+      public static UnkMeshTable Read( BinaryReader reader )
+      {
+        return new UnkMeshTable
+        {
+          Unk_1 = reader.ReadUInt16(),
+          Unk_2 = reader.ReadByte(),
+          Unk_3 = reader.ReadByte(),
+          Unk_4 = reader.ReadByte(),
+          Unk_5 = reader.ReadByte(),
+          Unk_6 = reader.ReadUInt32(),
         };
       }
     }
