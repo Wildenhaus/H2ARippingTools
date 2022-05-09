@@ -9,6 +9,7 @@ namespace LibH2A.Saber3D
     #region Properties
 
     public S3D_GeometryNodeCollection Nodes { get; private set; }
+    public S3D_GeometryData Data { get; private set; }
 
     #endregion
 
@@ -23,6 +24,7 @@ namespace LibH2A.Saber3D
       var geometry = new S3D_Geometry();
 
       geometry.Nodes = S3D_GeometryNodeCollection.Read( reader );
+      geometry.Data = S3D_GeometryData.Read( reader );
 
       return geometry;
     }

@@ -113,6 +113,11 @@ namespace LibH2A.Saber3D
         _stream.Position = found;
     }
 
+    private void CreateTplStreamSegment()
+    {
+
+    }
+
   }
 
 }

@@ -9,11 +9,11 @@ const string OUT_PATH = @"G:\h2a\d\";
 //DecompressAll();
 //await ExtractAll();
 //ConvertAllTextures();
-//ReadTpl( @"G:\h2a\d\shared\_database_\ss_prop__h.tpl" );
+//ReadTpl( @"G:\h2a\d\shared\_database_\banshee__h.tpl" );
 //ReadTpl( @"G:\h2a\d\shared\_database_\masterchief_fp__h.tpl" );
 //ReadTpl( @"G:\h2a\d\shared\_database_\mortar__h.tpl" );
 //ReadTpl( @"G:\h2a\d\01b_spacestation\_scene_\tpl\sm_geom_00008.tpl" );
-ReadAllTpls();
+ReadAllTpls();// NoCatch();
 
 void DecompressAll()
 {
@@ -80,15 +80,30 @@ void ReadTpl( string path )
 
 void ReadAllTpls()
 {
+  var count = 0;
+  var success = 0;
   foreach ( var tplFile in Directory.EnumerateFiles( OUT_PATH, "*.tpl", SearchOption.AllDirectories ) )
   {
+    Console.Title = $"{success} of {count} successful";
     try
     {
+      count++;
       ReadTpl( tplFile );
+      success++;
     }
     catch ( Exception ex )
     {
-      Console.WriteLine( "Failed to read {0}", tplFile );
+      Console.WriteLine( "Failed to read {0}: {1}", tplFile, ex.Message );
     }
+  }
+}
+
+void ReadAllTplsNoCatch()
+{
+  var count = 0;
+  var success = 0;
+  foreach ( var tplFile in Directory.EnumerateFiles( OUT_PATH, "*.tpl", SearchOption.AllDirectories ) )
+  {
+    ReadTpl( tplFile );
   }
 }
