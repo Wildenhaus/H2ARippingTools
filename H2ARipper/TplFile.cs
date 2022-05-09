@@ -5,6 +5,13 @@
   {
 
     private string _filePath;
+    private long _ukwFlag;
+    private BufferInfo _bufferInfo;
+
+    public BufferInfo BufferInfos
+    {
+      get => _bufferInfo;
+    }
 
     public static TplFile Open( string filePath )
     {
@@ -20,11 +27,11 @@
       using var fs = File.OpenRead( _filePath );
       using var reader = new BinaryReader( fs );
 
-      //ReadHeader( reader );
+      ReadHeader( reader );
       //ReadTPL1Block( reader );
       //ReadTextureNames( reader );
       ReadOgmBlock( reader );
-      //ReadChunks( reader );
+      ReadChunks( reader );
     }
 
     #region Read Methods
@@ -59,7 +66,7 @@
       Assert( reader.ReadInt64(), MAGIC_1SERTPL, "Invalid 1SERTPL Magic." );
 
       _ = reader.ReadInt64(); // Unk: Address?
-      _ = reader.ReadInt64(); // Unk: Flags/Count?
+      _ukwFlag = reader.ReadInt64(); // Unk: Flags/Count?
       _ = reader.ReadInt64(); // Unk: Address?
       _ = reader.ReadInt32(); // Unk: Null/reserved?
 
@@ -420,6 +427,8 @@
         reader.Seek( bufferLengthArray[ i ], SeekOrigin.Current );
       }
 
+      _bufferInfo = bufferInfo;
+
       chunkTag = reader.ReadInt16();
       chunkEnd = reader.ReadInt32();
 
@@ -445,6 +454,47 @@
 
       chunkTag = reader.ReadInt16();
       chunkEnd = reader.ReadInt32();
+      var subMeshDataArray = new SubMeshData[ subMeshCount ];
+      for ( var i = 0; i < subMeshCount; i++ )
+      {
+        var subMeshData = subMeshDataArray[ i ] = SubMeshData.Read( reader );
+        if ( _ukwFlag == 9 )
+        {
+          var unk = reader.ReadInt32();
+          switch ( unk )
+          {
+            case 0:
+              break;
+            case 1:
+              reader.ReadFixedLengthString( 8 );
+              reader.BaseStream.Position += 8;
+              break;
+            case 3:
+              reader.ReadFixedLengthString( 0x10 );
+              reader.BaseStream.Position += 0x10;
+              break;
+            case 7:
+              reader.ReadFixedLengthString( 0x18 );
+              reader.BaseStream.Position += 0x18;
+              break;
+            default:
+              throw new Exception( $"UNK SubMeshData Flag: {unk:X}" );
+          }
+        }
+      }
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+      var subMeshIdArray = new uint[ subMeshCount ];
+      for ( var i = 0; i < subMeshCount; i++ )
+        subMeshIdArray[ i ] = reader.ReadUInt32();
+
+      chunkTag = reader.ReadInt16();
+      chunkEnd = reader.ReadInt32();
+      for ( var i = 0; i < subMeshCount; i++ )
+      {
+
+      }
 
     }
 
@@ -504,7 +554,7 @@
       }
     }
 
-    internal class BufferInfo
+    public class BufferInfo
     {
       public long FaceBufferOffset;
       public long Unk_BufferOffset;
@@ -552,6 +602,319 @@
           Unk_6 = reader.ReadUInt32(),
         };
       }
+    }
+
+    internal struct SubMeshData
+    {
+      public ushort VertOffset;
+      public ushort VertCount;
+      public ushort FaceOffset;
+      public ushort FaceCount;
+      public ushort NodeId;
+      public ushort SkinCompoundId;
+
+      public static SubMeshData Read( BinaryReader reader )
+      {
+        return new SubMeshData
+        {
+          VertOffset = reader.ReadUInt16(),
+          VertCount = reader.ReadUInt16(),
+          FaceOffset = reader.ReadUInt16(),
+          FaceCount = reader.ReadUInt16(),
+          NodeId = reader.ReadUInt16(),
+          SkinCompoundId = reader.ReadUInt16(),
+        };
+      }
+    }
+
+    internal struct SubMeshScaleData
+    {
+      public short[] Position; //X,Y,Z
+      public short[] Scale; //X,Y,Z
+
+      public static SubMeshScaleData Read( BinaryReader reader )
+      {
+        var position = new short[ 3 ];
+        position[ 0 ] = reader.ReadInt16();
+        position[ 1 ] = reader.ReadInt16();
+        position[ 2 ] = reader.ReadInt16();
+
+        var scale = new short[ 3 ];
+        scale[ 0 ] = reader.ReadInt16();
+        scale[ 1 ] = reader.ReadInt16();
+        scale[ 2 ] = reader.ReadInt16();
+
+        return new SubMeshScaleData
+        {
+          Position = position,
+          Scale = scale
+        };
+      }
+    }
+
+    internal class Material
+    {
+
+      public short Version;
+      public short ShadingMatTexture;
+      public short ShadingMatMat;
+      public LM LM;
+      public MaterialLayer Layer0;
+      public MaterialLayer Layer1;
+      public MaterialLayer Layer2;
+
+      public static Material Read( BinaryReader reader, object parent = null )
+      {
+        var chunkTypeLength = reader.ReadInt32();
+        var chunkType = reader.ReadFixedLengthString( chunkTypeLength );
+        var dataType = reader.ReadInt32(); // 1: int, 2: float, 3: bool, 4: fixedstringcount
+        // TODO: getData
+
+        switch ( chunkType )
+        {
+          case "angle":
+            parent.SetValue( "Angle", reader.ReadInt16() );
+            break;
+          case "auxiliaryTextures":
+            break;
+          case "blending":
+            break;
+          case "colorA":
+            break;
+          case "colorB":
+            break;
+          case "colorG":
+            break;
+          case "colorR":
+            break;
+          case "colorSetIdx":
+            break;
+          case "enabled":
+            break;
+          case "end":
+            break;
+          case "extraParams":
+            break;
+          case "extraVertexColorData":
+            break;
+          case "falloff":
+            break;
+          case "heightmap":
+            break;
+          case "heightmapOverride":
+            break;
+          case "heightmapSoftness":
+            break;
+          case "heightmapUVOverride":
+            break;
+          case "invert":
+            break;
+          case "isVisible":
+            break;
+          case "layer0":
+            break;
+          case "layer1":
+            break;
+          case "layer2":
+            break;
+          case "lm":
+            break;
+          case "mask":
+            break;
+          case "macro":
+            break;
+          case "micro1":
+            break;
+          case "micro2":
+            break;
+          case "method":
+            break;
+          case "multiplier":
+            break;
+          case "mtlName":
+            break;
+          case "reliefNormalmaps":
+            break;
+          case "shadingMtl_Mtl":
+            break;
+          case "shadingMtl_Tex":
+            break;
+          case "source":
+            break;
+          case "sources":
+            break;
+          case "scale":
+            break;
+          case "start":
+            break;
+          case "tangent":
+            break;
+          case "texChannelBlendMask":
+            break;
+          case "texName":
+            break;
+          case "textureName":
+            break;
+          case "tilingU":
+            break;
+          case "tilingV":
+            break;
+          case "tint":
+            break;
+          case "transparency":
+            break;
+          case "useHeightmap":
+            break;
+          case "useLayerAlpha":
+            break;
+          case "uvSetIdx":
+            break;
+          case "upVector":
+            break;
+          case "vcSet":
+            break;
+          case "version":
+            break;
+          case "weightMultiplier":
+            break;
+          case "weights":
+            break;
+          default:
+            throw new Exception( $"Unknown material chunk name: {chunkType}" );
+        }
+
+        return null;
+      }
+
+    }
+
+    internal class LM
+    {
+      public short Source;
+      public short TextureName;
+      public short UvSetIndex;
+      public Tangent Tangent;
+    }
+
+    internal class Tangent
+    {
+      public short UvSetIndex;
+    }
+
+    internal class MaterialLayer
+    {
+      public short TextureName;
+      public short MaterialName;
+      public short Tint;
+      public short VcSet;
+      public short TilingU;
+      public short TilingV;
+      public short Blending;
+      public short UvSetIndex;
+    }
+
+    internal class Blending
+    {
+      public short Method;
+      public short UseLayerAlpha;
+      public short UseHeightMap;
+      public short WeightMultiplier;
+      public short HeightmapSoftness;
+      public short TexChannelBlendMask;
+      public Weights Weights;
+      public Heightmap Heightmap;
+      public short HeightmapOverride;
+      public UpVector UpVector;
+      public HeightmapUvOverride HeightmapUvOverride;
+    }
+
+    internal class Weights
+    {
+      public short ColorSetIndex;
+    }
+
+    internal class Heightmap
+    {
+      public short ColorSetIndex;
+      public short Invert;
+    }
+
+    internal class UpVector
+    {
+      public short Angle;
+      public short Enabled;
+      public short Falloff;
+    }
+
+    internal class HeightmapUvOverride
+    {
+      public short Enabled;
+      public short TilingU;
+      public short TilingV;
+      public short UvSetIndex;
+    }
+
+    internal class ExtraVertexColorData
+    {
+      public Color ColorA;
+      public Color ColorB;
+      public Color ColorG;
+      public Color ColorR;
+    }
+
+    internal class Color
+    {
+      public short ColorSetIndex;
+    }
+
+    internal class Transparency
+    {
+      public short ColorSetIndex;
+      public short Enabled;
+      public short Multiplier;
+      public short Sources;
+    }
+
+    internal class Mask
+    {
+      public short TextureName;
+      public short TilingU;
+      public short TilingV;
+      public short UvSetIndex;
+    }
+
+    internal class AuxiliaryTextures
+    {
+      public Mask Mask;
+    }
+
+    internal class ExtraParams
+    {
+      public ReliefNormalMaps ReliefNormalMaps;
+      public AuxiliaryTextures AuxiliaryTextures;
+      public Transparency Transparency;
+      public ExtraVertexColorData ExtraVertexColorData;
+
+    }
+
+    internal class ReliefNormalMaps
+    {
+      public MacroMicro Macro;
+      public MacroMicro Micro1;
+      public MacroMicro Micro2;
+    }
+
+    internal class MacroMicro
+    {
+      public short End;
+      public short Falloff;
+      public short IsVisible;
+      public short Scale;
+      public short Start;
+      public short TextureName;
+      public short TilingU;
+      public short TilingV;
+      public short UvSetIndex;
     }
 
     #endregion

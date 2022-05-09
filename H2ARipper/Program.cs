@@ -9,7 +9,7 @@ const string OUT_PATH = @"G:\h2a\d\";
 //await ExtractAll();
 //ConvertAllTextures();
 //ReadTpl( @"G:\h2a\d\shared\_database_\ss_prop__h.tpl" );
-ReadTpl( @"G:\h2a\d\shared\_database_\masterchief_fp__h.tpl" );
+//ReadTpl( @"G:\h2a\d\shared\_database_\masterchief_fp__h.tpl" );
 ReadTpl( @"G:\h2a\d\shared\_database_\banshee__h.tpl" );
 ReadTpl( @"G:\h2a\d\01b_spacestation\_scene_\tpl\sm_geom_00008.tpl" );
 
