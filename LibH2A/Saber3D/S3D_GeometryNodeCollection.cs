@@ -157,9 +157,10 @@ namespace LibH2A.Saber3D
       {
         nodes[ i ].Unk_03 = new S3D_Geometry_UnkSection03
         {
-          Unk_01 = reader.ReadUInt32(),
-          Unk_02 = reader.ReadUInt16(),
-          Unk_03 = reader.ReadByte()
+          Unk_01 = reader.ReadUInt16(),
+          Unk_02_IsMesh = reader.ReadUInt16(),
+          Unk_03_IsBone = reader.ReadUInt16(),
+          Unk_04_IsHighestLod = reader.ReadByte()
         };
       }
     }
@@ -173,7 +174,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_04 = reader.ReadUInt16();
+        nodes[ i ].Unk_04_ParentId = reader.ReadUInt16();
     }
 
     private static void ReadSection_UnkSection05( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -185,7 +186,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_05 = reader.ReadUInt16();
+        nodes[ i ].Unk_05_SiblingId = reader.ReadUInt16();
     }
 
     private static void ReadSection_UnkSection06( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -197,7 +198,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_06 = reader.ReadUInt16();
+        nodes[ i ].Unk_06_SiblingId = reader.ReadUInt16();
     }
 
     private static void ReadSection_UnkSection07( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -209,7 +210,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_07 = reader.ReadUInt16();
+        nodes[ i ].Unk_07_ChildId = reader.ReadUInt16();
     }
 
     private static void ReadSection_UnkSection08( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -221,7 +222,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_08 = reader.ReadUInt16();
+        nodes[ i ].Unk_08_BoneId = reader.ReadUInt16();
     }
 
     private static void ReadSection_UnkSection09( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -233,7 +234,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_09 = reader.ReadPascalString32();
+        nodes[ i ].Unk_09_ExportName = reader.ReadPascalString32();
     }
 
     private static void ReadSection_UnkSection10( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -245,7 +246,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_10 = reader.ReadMatrix4x4();
+        nodes[ i ].Unk_10_BoneMatrix = reader.ReadMatrix4x4();
     }
 
     private static void ReadSection_UnkSection11( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -257,7 +258,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_11 = reader.ReadMatrix4x4();
+        nodes[ i ].Unk_11_InverseMatrix = reader.ReadMatrix4x4();
     }
 
     private static void ReadSection_UnkSection12( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -294,10 +295,10 @@ namespace LibH2A.Saber3D
         {
           Unk_01 = reader.ReadUInt32(),
           Unk_02 = reader.ReadByte(),
-          SubMeshIndex = reader.ReadUInt32(),
-          SubMeshRangeCount = reader.ReadUInt32(),
-          Min = reader.ReadVector3(),
-          Max = reader.ReadVector3()
+          Unk_03_SubMeshIndex = reader.ReadUInt32(),
+          Unk_04_SubMeshRangeCount = reader.ReadUInt32(),
+          Unk_05_Min = reader.ReadVector3(),
+          Unk_06_Max = reader.ReadVector3()
         } );
       }
     }
@@ -311,7 +312,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_13 = reader.ReadPascalString32();
+        nodes[ i ].Unk_13_BoneHeirarchy = reader.ReadPascalString32();
     }
 
     private static void ReadSection_UnkSection14( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -341,7 +342,7 @@ namespace LibH2A.Saber3D
       if ( sentinel == 0x1 )
       {
         for ( var i = 0; i < nodes.Count; i++ )
-          nodes[ i ].Unk_15a = reader.ReadPascalString16();
+          nodes[ i ].Unk_15_BoneName = reader.ReadPascalString16();
       }
 
       // If sentinel is 8, it's some kind of scripting
@@ -373,7 +374,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Unk_16 = reader.ReadPascalString16();
+        nodes[ i ].Unk_16_ExportName = reader.ReadPascalString16();
     }
 
     #endregion

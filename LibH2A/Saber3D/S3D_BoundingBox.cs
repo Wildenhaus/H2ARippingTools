@@ -7,10 +7,10 @@ namespace LibH2A.Saber3D
   {
     public uint Unk_01;
     public byte Unk_02;
-    public uint SubMeshIndex;
-    public uint SubMeshRangeCount;
-    public Vector3 Min;
-    public Vector3 Max;
+    public uint Unk_03_SubMeshIndex;
+    public uint Unk_04_SubMeshRangeCount;
+    public Vector3 Unk_05_Min;
+    public Vector3 Unk_06_Max;
   }
 
 }
