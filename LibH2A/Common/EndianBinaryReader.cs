@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace LibH2A.Common
@@ -155,6 +156,9 @@ namespace LibH2A.Common
     public string ReadPascalString16()
     {
       var stringLength = ReadUInt16();
+      if ( stringLength == 0 )
+        return null;
+
       return ReadString( stringLength );
     }
 
@@ -162,7 +166,43 @@ namespace LibH2A.Common
     public string ReadPascalString32()
     {
       var stringLength = ReadUInt32();
+      if ( stringLength == 0 )
+        return null;
+
       return ReadString( stringLength );
+    }
+
+    [MethodImpl( MethodImplOptions.AggressiveInlining )]
+    public Matrix4x4 ReadMatrix4x4()
+    {
+      return new Matrix4x4(
+        m11: ReadSingle(),
+        m12: ReadSingle(),
+        m13: ReadSingle(),
+        m14: ReadSingle(),
+        m21: ReadSingle(),
+        m22: ReadSingle(),
+        m23: ReadSingle(),
+        m24: ReadSingle(),
+        m31: ReadSingle(),
+        m32: ReadSingle(),
+        m33: ReadSingle(),
+        m34: ReadSingle(),
+        m41: ReadSingle(),
+        m42: ReadSingle(),
+        m43: ReadSingle(),
+        m44: ReadSingle()
+      );
+    }
+
+    [MethodImpl( MethodImplOptions.AggressiveInlining )]
+    public Vector3 ReadVector3()
+    {
+      return new Vector3(
+        x: ReadSingle(),
+        y: ReadSingle(),
+        z: ReadSingle()
+        );
     }
 
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
@@ -179,6 +219,22 @@ namespace LibH2A.Common
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public void Seek( long offset, SeekOrigin origin = SeekOrigin.Begin )
       => BaseStream.Seek( offset, origin );
+
+    [MethodImpl( MethodImplOptions.AggressiveInlining )]
+    public byte PeekByte()
+    {
+      var value = ReadByte();
+      BaseStream.Position--;
+      return value;
+    }
+
+    [MethodImpl( MethodImplOptions.AggressiveInlining )]
+    public int PeekInt32()
+    {
+      var value = ReadInt32();
+      BaseStream.Position -= sizeof( int );
+      return value;
+    }
 
     #endregion
 

@@ -15,6 +15,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\LibH2A\LibH2A.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Update="Binaries\RawtexCmd.exe">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

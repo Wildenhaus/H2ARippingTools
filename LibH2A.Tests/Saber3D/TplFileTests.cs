@@ -1,5 +1,6 @@
 using System;
-using LibH2A.Saber3D.Templates;
+using System.IO;
+using LibH2A.Saber3D;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace LibH2A.Tests
@@ -10,33 +11,16 @@ namespace LibH2A.Tests
   {
 
     [TestMethod]
-    public void TplFile_Reads_TPL_With_Multiple_Names_In_Pak_Metadata()
+    public void TplFile_Reads_TPL_File_With_Script()
     {
       //== Arrange ==============================
-      var file = TestHelper.GetFile( "int_foliage_alder_02__act_tree.tpl" );
+      var file = TestHelper.GetFile( "ss_prop__h.tpl" );
 
       //== Act ==================================
-      var tplFile = TplFile.Open( file );
+      var tplFile = S3D_Template.Open( File.OpenRead( file ) );
 
       //== Assert ===============================
 
-      //== Cleanup ==============================
-      tplFile.Dispose();
-    }
-
-    [TestMethod]
-    public void TplFile_Reads_TPL_File_Actor()
-    {
-      //== Arrange ==============================
-      var file = TestHelper.GetFile( "banshee__h.tpl" );
-
-      //== Act ==================================
-      var tplFile = TplFile.Open( file );
-
-      //== Assert ===============================
-
-      //== Cleanup ==============================
-      tplFile.Dispose();
     }
 
     [TestMethod]
@@ -50,12 +34,10 @@ namespace LibH2A.Tests
         try
         {
           //== Act ==================================
-          var tplFile = TplFile.Open( file );
+          var tplFile = S3D_Template.Open( File.OpenRead( file ) );
 
           //== Assert ===============================
 
-          //== Cleanup ==============================
-          tplFile.Dispose();
         }
         catch ( Exception ex )
         {

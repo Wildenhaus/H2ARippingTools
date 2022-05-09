@@ -7,8 +7,4 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Folder Include="Saber3D\FileSystem\" />
-  </ItemGroup>
-
 </Project>

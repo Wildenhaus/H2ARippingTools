@@ -1,6 +1,7 @@
 ﻿using CliWrap;
 using H2ARipper;
 using H2ARipper.Converters;
+using LibH2A.Saber3D;
 
 const string IN_PATH = @"G:\Steam\steamapps\common\Halo The Master Chief Collection\halo2\";
 const string OUT_PATH = @"G:\h2a\d\";
@@ -10,8 +11,9 @@ const string OUT_PATH = @"G:\h2a\d\";
 //ConvertAllTextures();
 //ReadTpl( @"G:\h2a\d\shared\_database_\ss_prop__h.tpl" );
 //ReadTpl( @"G:\h2a\d\shared\_database_\masterchief_fp__h.tpl" );
-ReadTpl( @"G:\h2a\d\shared\_database_\banshee__h.tpl" );
-ReadTpl( @"G:\h2a\d\01b_spacestation\_scene_\tpl\sm_geom_00008.tpl" );
+//ReadTpl( @"G:\h2a\d\shared\_database_\mortar__h.tpl" );
+//ReadTpl( @"G:\h2a\d\01b_spacestation\_scene_\tpl\sm_geom_00008.tpl" );
+ReadAllTpls();
 
 void DecompressAll()
 {
@@ -73,7 +75,7 @@ void ConvertAllTextures()
 
 void ReadTpl( string path )
 {
-  var tpl = TplFile.Open( path );
+  var tpl = S3D_Template.Open( File.OpenRead( path ) );
 }
 
 void ReadAllTpls()
