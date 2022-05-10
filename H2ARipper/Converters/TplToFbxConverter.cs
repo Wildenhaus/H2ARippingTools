@@ -19,8 +19,8 @@ namespace H2ARipper.Converters
 
       var x = 0;
       foreach ( var submesh in tpl.Geometry.Data.SubMeshes )
-        if ( ++x == 104 )
-          AddSubMesh( submesh, tpl, reader, scene );
+        //if ( ++x == 104 )
+        AddSubMesh( submesh, tpl, reader, scene );
 
       scene.Save( File.Create( outFile ), FileFormat.FBX7700Binary );
     }
@@ -64,12 +64,13 @@ namespace H2ARipper.Converters
             for ( var i = 0; i < submesh.FaceCount; i++ )
               mesh.CreatePolygon( reader.ReadInt16(), reader.ReadInt16(), 0 );
             break;
-          case S3D_GeometryData.S3D_BufferType.VertNormalAndUV:
+          case S3D_GeometryData.S3D_BufferType.UvAndUnk:
             reader.Seek( startOffset + ( submesh.VertOffset * buffer.ElementSize ), SeekOrigin.Begin );
             var uvs = mesh.CreateElementUV( TextureMapping.Diffuse, MappingMode.ControlPoint, ReferenceMode.Direct );
             for ( var i = 0; i < submesh.VertCount; i++ )
             {
-              var normal = reader.ReadInt32();// how do we do this
+              var unk = reader.ReadInt32(); // Blend Indices?
+
               var u = IntToDouble( reader.ReadInt16() );
               var v = 1 - IntToDouble( reader.ReadInt16() );
               uvs.Data.Add( new Aspose.ThreeD.Utilities.Vector4( u, v, 0, 0 ) );
@@ -98,6 +99,10 @@ namespace H2ARipper.Converters
 
     private static double IntToDouble( in short value )
       => ( double ) value / short.MaxValue;
+
+    private static double IntToDouble( in ushort value )
+      => ( double ) value / ushort.MaxValue;
+
   }
 
 }
