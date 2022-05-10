@@ -20,53 +20,8 @@ namespace H2ARipper.Converters
       foreach ( var submesh in tpl.Geometry.Data.SubMeshes )
         AddSubMesh( submesh, tpl, reader, scene );
 
-      //var mesh = new Mesh();
-      //var node = new Node( "", mesh );
-
-      //foreach ( var vert in tpl.Geometry.Data.Vertices )
-      //  mesh.ControlPoints.Add( new Aspose.ThreeD.Utilities.Vector4( vert.X, vert.Y, vert.Z ) );
-      //foreach ( var face in tpl.Geometry.Data.Faces )
-      //  mesh.CreatePolygon( face.A, face.B, face.C );
-
-      //scene.RootNode.AddChildNode( node );
-
       scene.Save( File.Create( outFile ), FileFormat.FBX7700Binary );
     }
-
-    //private static void AddMesh( S3D_GeometryData.S3D_MeshData[] meshData, Scene scene, EndianBinaryReader reader, S3D_Template tpl )
-    //{
-    //  var mesh = new Mesh();
-    //  var node = new Node( "", mesh );
-    //  scene.RootNode.AddChildNode( node );
-
-    //  foreach ( var bufInfo in meshData )
-    //  {
-    //    var buffer = tpl.Geometry.Data.Buffers[ ( int ) bufInfo.BufferId ];
-    //    reader.Seek( buffer.DataOffset + bufInfo.SubBufferOffset, SeekOrigin.Begin );
-
-    //    switch ( buffer.BufferType )
-    //    {
-    //      case S3D_GeometryData.S3D_BufferType.Face:
-    //        while ( reader.BaseStream.Position < buffer.DataOffset + buffer.BufferLength )
-    //          mesh.CreatePolygon( reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16() );
-    //        break;
-    //      case S3D_GeometryData.S3D_BufferType.Unk_Face:
-    //        while ( reader.BaseStream.Position < buffer.DataOffset + buffer.BufferLength )
-    //          mesh.CreatePolygon( reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16() );
-    //        break;
-    //      case S3D_GeometryData.S3D_BufferType.StaticVert:
-    //      case S3D_GeometryData.S3D_BufferType.SkinnedVert:
-    //        //case S3D_GeometryData.S3D_BufferType.NormalVert: Broken, probably a different structure
-    //        while ( reader.BaseStream.Position < buffer.DataOffset + buffer.BufferLength )
-    //        {
-    //          mesh.ControlPoints.Add( new Aspose.ThreeD.Utilities.Vector4( reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16() ) );
-    //          reader.BaseStream.Position += buffer.ElementSize - 6;
-    //        }
-    //        break;
-    //    }
-
-    //  }
-    //}
 
     private static void AddSubMesh( S3D_GeometryData.S3D_SubMesh submesh, S3D_Template tpl, EndianBinaryReader reader, Scene scene )
     {
@@ -86,8 +41,21 @@ namespace H2ARipper.Converters
         {
           case S3D_GeometryData.S3D_BufferType.Face:
             reader.Seek( startOffset + ( submesh.FaceOffset * buffer.ElementSize ), SeekOrigin.Begin );
+
+            // Load faces
+            var faces = new List<short[]>();
             for ( var i = 0; i < submesh.FaceCount; i++ )
-              mesh.CreatePolygon( reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16() );
+              faces.Add( new[] { reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16() } );
+
+            // Normalize the vertex indices
+            var min = faces.Min( x => x.Min() );
+            foreach ( var f in faces )
+              for ( var i = 0; i < f.Length; i++ )
+                f[ i ] -= min;
+
+            foreach ( var f in faces )
+              mesh.CreatePolygon( f[ 0 ], f[ 1 ], f[ 2 ] );
+
             break;
           case S3D_GeometryData.S3D_BufferType.Unk_Face:
             reader.Seek( startOffset + ( submesh.FaceOffset * buffer.ElementSize ), SeekOrigin.Begin );
