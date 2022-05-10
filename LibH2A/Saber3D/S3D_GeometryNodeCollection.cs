@@ -15,6 +15,9 @@ namespace LibH2A.Saber3D
 
     #region Data Members
 
+    private ushort _nodeCount;
+    private ushort _sectionCount;
+
     private List<S3D_GeometryNode> _nodes;
     private List<S3D_BoundingBox> _boundingBoxes;
     private List<string> _scripts;
@@ -74,22 +77,40 @@ namespace LibH2A.Saber3D
 
       var nodeData = new S3D_GeometryNodeCollection();
 
-      ReadSection_NodeIndices( nodeData, reader );
-      ReadSection_NodeNames( nodeData, reader );
-      ReadSection_UnkSection03( nodeData, reader );
-      ReadSection_UnkSection04( nodeData, reader );
-      ReadSection_UnkSection05( nodeData, reader );
-      ReadSection_UnkSection06( nodeData, reader );
-      ReadSection_UnkSection07( nodeData, reader );
-      ReadSection_UnkSection08( nodeData, reader );
-      ReadSection_UnkSection09( nodeData, reader );
-      ReadSection_UnkSection10( nodeData, reader );
-      ReadSection_UnkSection11( nodeData, reader );
-      ReadSection_UnkSection12( nodeData, reader );
-      ReadSection_UnkSection13( nodeData, reader );
-      ReadSection_UnkSection14( nodeData, reader );
-      ReadSection_UnkSection15( nodeData, reader );
-      ReadSection_UnkSection16( nodeData, reader );
+      ReadSectionInfo( nodeData, reader );
+
+      if ( nodeData._sectionCount >= 1 )
+        ReadSection_NodeIndices( nodeData, reader );
+      if ( nodeData._sectionCount >= 2 )
+        ReadSection_NodeNames( nodeData, reader );
+      if ( nodeData._sectionCount >= 3 )
+        ReadSection_UnkSection03( nodeData, reader );
+      if ( nodeData._sectionCount >= 4 )
+        ReadSection_UnkSection04( nodeData, reader );
+      if ( nodeData._sectionCount >= 5 )
+        ReadSection_UnkSection05( nodeData, reader );
+      if ( nodeData._sectionCount >= 6 )
+        ReadSection_UnkSection06( nodeData, reader );
+      if ( nodeData._sectionCount >= 7 )
+        ReadSection_UnkSection07( nodeData, reader );
+      if ( nodeData._sectionCount >= 8 )
+        ReadSection_UnkSection08( nodeData, reader );
+      if ( nodeData._sectionCount >= 9 )
+        ReadSection_UnkSection09( nodeData, reader );
+      if ( nodeData._sectionCount >= 10 )
+        ReadSection_UnkSection10( nodeData, reader );
+      if ( nodeData._sectionCount >= 11 )
+        ReadSection_UnkSection11( nodeData, reader );
+      if ( nodeData._sectionCount >= 12 )
+        ReadSection_UnkSection12( nodeData, reader );
+      if ( nodeData._sectionCount >= 13 )
+        ReadSection_UnkSection13( nodeData, reader );
+      if ( nodeData._sectionCount >= 14 )
+        ReadSection_UnkSection14( nodeData, reader );
+      if ( nodeData._sectionCount >= 15 )
+        ReadSection_UnkSection15( nodeData, reader );
+      if ( nodeData._sectionCount >= 16 )
+        ReadSection_UnkSection16( nodeData, reader );
 
       return nodeData;
     }
@@ -104,29 +125,30 @@ namespace LibH2A.Saber3D
         $"Invalid OGM1 Signature (0x{reader.BaseStream.Position:X}" );
     }
 
+    private static void ReadSectionInfo( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
+    {
+      _ = reader.ReadUInt16(); // Unk
+      _ = reader.ReadUInt16(); // Unk
+      _ = reader.ReadUInt16(); // Unk
+
+      _ = reader.ReadByte();
+
+      geometry._nodeCount = reader.ReadUInt16();
+
+      _ = reader.ReadUInt16(); // Unk
+      geometry._sectionCount = reader.ReadUInt16(); // Unk
+      _ = reader.ReadUInt16(); // Unk
+    }
+
     private static void ReadSection_NodeIndices( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
     {
       var nodes = geometry._nodes = new List<S3D_GeometryNode>();
 
-      _ = reader.ReadUInt16(); // Unk
-      _ = reader.ReadUInt16(); // Unk
-      _ = reader.ReadUInt16(); // Unk
-
       // Read Sentinel
       if ( reader.ReadByte() == 0 )
         return;
 
-      var nodeCount = reader.ReadUInt16();
-
-      _ = reader.ReadUInt16(); // Unk
-      _ = reader.ReadUInt16(); // Unk
-      _ = reader.ReadUInt16(); // Unk
-
-      // Read Sentinel
-      if ( reader.ReadByte() == 0 )
-        return;
-
-      for ( var i = 0; i < nodeCount; i++ )
+      for ( var i = 0; i < geometry._nodeCount; i++ )
       {
         var index = reader.ReadUInt16();
         nodes.Add( new S3D_GeometryNode { Index = index } );
