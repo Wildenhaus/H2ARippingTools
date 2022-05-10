@@ -1,10 +1,12 @@
-﻿using System.Numerics;
+﻿using System.Diagnostics;
+using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 
 namespace LibH2A.Common
 {
 
+  [DebuggerDisplay( "BinaryReader({BaseStream.Position})" )]
   public unsafe sealed class EndianBinaryReader : BinaryReader
   {
 
@@ -47,6 +49,7 @@ namespace LibH2A.Common
 
     #region Public Methods
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override char ReadChar()
     {
@@ -57,6 +60,7 @@ namespace LibH2A.Common
       return BitConverter.ToChar( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override short ReadInt16()
     {
@@ -67,6 +71,7 @@ namespace LibH2A.Common
       return BitConverter.ToInt16( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override ushort ReadUInt16()
     {
@@ -77,6 +82,7 @@ namespace LibH2A.Common
       return BitConverter.ToUInt16( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override int ReadInt32()
     {
@@ -87,6 +93,7 @@ namespace LibH2A.Common
       return BitConverter.ToInt32( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override uint ReadUInt32()
     {
@@ -97,6 +104,7 @@ namespace LibH2A.Common
       return BitConverter.ToUInt32( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override long ReadInt64()
     {
@@ -107,6 +115,7 @@ namespace LibH2A.Common
       return BitConverter.ToInt64( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override ulong ReadUInt64()
     {
@@ -117,6 +126,7 @@ namespace LibH2A.Common
       return BitConverter.ToUInt64( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override float ReadSingle()
     {
@@ -127,6 +137,7 @@ namespace LibH2A.Common
       return BitConverter.ToSingle( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override double ReadDouble()
     {
@@ -137,10 +148,12 @@ namespace LibH2A.Common
       return BitConverter.ToDouble( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public override decimal ReadDecimal()
       => throw new NotImplementedException();
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public string ReadString( uint length )
     {
@@ -152,6 +165,7 @@ namespace LibH2A.Common
       return sb.ToString();
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public string ReadPascalString16()
     {
@@ -162,6 +176,7 @@ namespace LibH2A.Common
       return ReadString( stringLength );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public string ReadPascalString32()
     {
@@ -172,6 +187,7 @@ namespace LibH2A.Common
       return ReadString( stringLength );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public Matrix4x4 ReadMatrix4x4()
     {
@@ -195,6 +211,7 @@ namespace LibH2A.Common
       );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public Vector3 ReadVector3()
     {
@@ -205,6 +222,7 @@ namespace LibH2A.Common
         );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public Guid ReadGuid()
     {
@@ -216,10 +234,12 @@ namespace LibH2A.Common
       return new Guid( buffer );
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public void Seek( long offset, SeekOrigin origin = SeekOrigin.Begin )
       => BaseStream.Seek( offset, origin );
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public byte PeekByte()
     {
@@ -228,6 +248,7 @@ namespace LibH2A.Common
       return value;
     }
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     public int PeekInt32()
     {
@@ -240,6 +261,7 @@ namespace LibH2A.Common
 
     #region Private Methods
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.AggressiveInlining )]
     private void ReadAndSwap( in Span<byte> buffer )
     {
@@ -255,6 +277,7 @@ namespace LibH2A.Common
 
     #region Throw Helpers
 
+    [DebuggerHidden]
     [MethodImpl( MethodImplOptions.NoInlining )]
     private static void ThrowEndOfStreamException()
       => throw new EndOfStreamException();
