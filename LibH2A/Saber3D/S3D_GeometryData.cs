@@ -37,6 +37,17 @@ namespace LibH2A.Saber3D
       get => _buffers;
     }
 
+    public IReadOnlyList<S3D_SubMesh> SubMeshes
+    {
+      get => _submeshes;
+    }
+
+    public S3D_MeshData[][] MeshData { get => _meshData; }
+
+    public List<S3D_Face> Faces { get; set; }
+    public List<S3D_Vertex> Vertices { get; set; }
+
+
     #endregion
 
     #region Constructor
@@ -76,6 +87,8 @@ namespace LibH2A.Saber3D
       ReadChunk_15( data, reader );
       ReadChunk_16( data, reader );
       ReadChunk_17( data, reader );
+
+      ParseSubMeshData( data, reader );
 
       return data;
     }
@@ -427,6 +440,41 @@ namespace LibH2A.Saber3D
       Assert( fileSize == currentPos, $"Finished reading, but the file still has {fileSize - currentPos} more bytes." );
     }
 
+    private static void ParseSubMeshData( S3D_GeometryData data, EndianBinaryReader reader )
+    {
+      var vertbuf = data.Buffers.First( x => x.BufferType == S3D_BufferType.StaticVert );
+      reader.Seek( vertbuf.DataOffset, SeekOrigin.Begin );
+      var verts = data.Vertices = new List<S3D_Vertex>();
+      for ( var i = 0; i < vertbuf.BufferLength; i += vertbuf.ElementSize )
+      {
+        verts.Add( new S3D_Vertex { X = reader.ReadInt16(), Y = reader.ReadInt16(), Z = reader.ReadInt16(), W = reader.ReadInt16() } );
+        reader.BaseStream.Position += vertbuf.ElementSize - 8;
+      }
+
+      var facebuf = data.Buffers.First( x => x.BufferType == S3D_BufferType.Face );
+      reader.Seek( facebuf.DataOffset, SeekOrigin.Begin );
+      var faces = data.Faces = new List<S3D_Face>();
+      for ( var i = 0; i < facebuf.BufferLength; i += 6 )
+      {
+        faces.Add( new S3D_Face { A = reader.ReadInt16(), B = reader.ReadInt16(), C = reader.ReadInt16() } );
+      }
+
+      foreach ( var submesh in data._submeshes )
+      {
+        ParseSubMeshVertices( submesh, reader );
+        ParseSubMeshFaces( submesh, reader );
+      }
+    }
+
+    private static void ParseSubMeshVertices( S3D_SubMesh submesh, EndianBinaryReader reader )
+    {
+    }
+
+    private static void ParseSubMeshFaces( S3D_SubMesh submesh, EndianBinaryReader reader )
+    {
+
+    }
+
     #endregion
 
     #region Embedded Types
@@ -443,7 +491,7 @@ namespace LibH2A.Saber3D
 
       Unk_42 = 0x42,
       Unk_5E = 0x5E,
-      Unk_C6 = 0xC6
+      Unk_C6 = 0xC6,
     }
 
     public struct S3D_BufferInfo
@@ -500,6 +548,9 @@ namespace LibH2A.Saber3D
       public S3D_Material Material { get; set; }
       public Unk_SubMeshInfo UnkInfo { get; set; }
       public S3D_SubMeshTransformInfo TransformInfo { get; set; }
+
+      public IReadOnlyList<S3D_Face> Faces { get; set; }
+      public IReadOnlyList<S3D_Vertex> Vertices { get; set; }
     }
 
     public struct Unk_SubMeshInfo
