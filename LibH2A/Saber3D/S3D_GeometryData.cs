@@ -300,7 +300,9 @@ namespace LibH2A.Saber3D
         }
       }
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 11" );
+      // TODO: When _unkSeekFlag is not 9, this assert fails
+      //Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 11" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_12( S3D_GeometryData data, EndianBinaryReader reader )
@@ -318,16 +320,24 @@ namespace LibH2A.Saber3D
 
     private static void ReadChunk_13( S3D_GeometryData data, EndianBinaryReader reader )
     {
-      // SubMesh Materials
       var chunkTag = reader.ReadUInt16();
       var chunkEnd = reader.ReadUInt32() + data._tplOffset;
 
-      var submeshes = data._submeshes;
-      for ( var i = 0; i < submeshes.Count; i++ )
+      // SubMesh Materials
+      if ( chunkTag == 0x08 )
       {
-        _ = reader.ReadInt16();
-        var material = S3D_Material.Read( reader );
-        submeshes[ i ].Material = material;
+        var submeshes = data._submeshes;
+        for ( var i = 0; i < submeshes.Count; i++ )
+        {
+          _ = reader.ReadInt16();
+          var material = S3D_Material.Read( reader );
+          submeshes[ i ].Material = material;
+        }
+      }
+      else
+      {
+        // TODO: Unknown Material Format. Just one string w/ some additional data.
+        reader.BaseStream.Position = chunkEnd;
       }
 
       Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 13" );
