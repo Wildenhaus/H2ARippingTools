@@ -17,8 +17,10 @@ namespace H2ARipper.Converters
 
       var scene = new Scene();
 
+      var x = 0;
       foreach ( var submesh in tpl.Geometry.Data.SubMeshes )
-        AddSubMesh( submesh, tpl, reader, scene );
+        if ( ++x == 104 )
+          AddSubMesh( submesh, tpl, reader, scene );
 
       scene.Save( File.Create( outFile ), FileFormat.FBX7700Binary );
     }
@@ -62,20 +64,27 @@ namespace H2ARipper.Converters
             for ( var i = 0; i < submesh.FaceCount; i++ )
               mesh.CreatePolygon( reader.ReadInt16(), reader.ReadInt16(), 0 );
             break;
-          case S3D_GeometryData.S3D_BufferType.NormalVert:
-            //reader.Seek( startOffset + ( submesh.VertOffset * buffer.ElementSize ), SeekOrigin.Begin );
-            //for ( var i = 0; i < submesh.VertCount; i++ )
-            //{
-            //  mesh.ControlPoints.Add( new Aspose.ThreeD.Utilities.Vector4( reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16() ) );
-            //  reader.BaseStream.Position += buffer.ElementSize - 8;
-            //}
+          case S3D_GeometryData.S3D_BufferType.VertNormalAndUV:
+            reader.Seek( startOffset + ( submesh.VertOffset * buffer.ElementSize ), SeekOrigin.Begin );
+            var uvs = mesh.CreateElementUV( TextureMapping.Diffuse, MappingMode.ControlPoint, ReferenceMode.Direct );
+            for ( var i = 0; i < submesh.VertCount; i++ )
+            {
+              var normal = reader.ReadInt32();// how do we do this
+              var u = IntToDouble( reader.ReadInt16() );
+              var v = 1 - IntToDouble( reader.ReadInt16() );
+              uvs.Data.Add( new Aspose.ThreeD.Utilities.Vector4( u, v, 0, 0 ) );
+            }
             break;//Broken, probably a different structure
           case S3D_GeometryData.S3D_BufferType.StaticVert:
           case S3D_GeometryData.S3D_BufferType.SkinnedVert:
             reader.Seek( startOffset + ( submesh.VertOffset * buffer.ElementSize ), SeekOrigin.Begin );
             for ( var i = 0; i < submesh.VertCount; i++ )
             {
-              mesh.ControlPoints.Add( new Aspose.ThreeD.Utilities.Vector4( reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16(), reader.ReadInt16() ) );
+              var x = IntToDouble( reader.ReadInt16() );
+              var y = IntToDouble( reader.ReadInt16() );
+              var z = IntToDouble( reader.ReadInt16() );
+              var w = IntToDouble( reader.ReadInt16() );
+              mesh.ControlPoints.Add( new Aspose.ThreeD.Utilities.Vector4( x, y, z, w ) );
               reader.BaseStream.Position += buffer.ElementSize - 8;
             }
             break;
@@ -86,6 +95,9 @@ namespace H2ARipper.Converters
       }
 
     }
+
+    private static double IntToDouble( in short value )
+      => ( double ) value / short.MaxValue;
   }
 
 }
