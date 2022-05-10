@@ -42,7 +42,7 @@ namespace LibH2A.Tests
         catch ( Exception ex )
         {
           var message = $"Failed to read {file}: {ex.Message}";
-          throw new Exception( message );
+          throw new Exception( message, ex );
         }
       }
     }
