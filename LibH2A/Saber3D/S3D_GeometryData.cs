@@ -311,8 +311,6 @@ namespace LibH2A.Saber3D
       if ( punt )
         return;
 
-      var seekCheck = ( chunkEnd - chunkStart ) % 12 == 0; // each element is 12 bytes
-
       var submeshes = data._submeshes;
       for ( var i = 0; i < data._subMeshCount; i++ )
       {
@@ -330,7 +328,7 @@ namespace LibH2A.Saber3D
         if ( reader.BaseStream.Position >= chunkEnd )
           return;
 
-        if ( data._unkSeekFlag == 0x9 && seekCheck )
+        if ( data._unkSeekFlag == 0x9 )
         {
           var unk_seekFlag = reader.ReadInt32();
           switch ( unk_seekFlag )
