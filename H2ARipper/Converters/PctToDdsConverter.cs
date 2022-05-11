@@ -19,13 +19,13 @@ namespace H2ARipper.Converters
       ConvertToDds( header, inFile );
     }
 
-    public static void Convert(Span<byte> data)
+    public static void Convert(Span<byte> data, in string outFile)
     {
         using var bs = new MemoryStream(data);
         using var reader = new BinaryReader(bs);
 
         var header = ReadHeader(reader);
-        ConvertToDds(header, inFile);
+        ConvertToDds(header, outFile);
     }
 
         private static PctHeader ReadHeader( BinaryReader reader )
