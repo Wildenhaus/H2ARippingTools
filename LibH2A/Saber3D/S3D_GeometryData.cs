@@ -92,11 +92,29 @@ namespace LibH2A.Saber3D
 
     #region Private Methods
 
+    private static (ushort tag, long end, bool punt) ReadChunkHeader( S3D_GeometryData data, EndianBinaryReader reader )
+    {
+      // Model Info Chunk?
+      var punt = false;
+      var chunkTag = reader.ReadUInt16();
+      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+
+      // If we're at the end of the file, reverse and punt (will cascade)
+      if ( chunkTag == 0xffff )
+      {
+        reader.BaseStream.Position -= 6;
+        punt = true;
+      }
+
+      return (chunkTag, chunkEnd, punt);
+    }
+
     private static void ReadChunk_01( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Model Info Chunk?
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       data._rootNodeIndex = reader.ReadUInt16();
       data._nodeCount = reader.ReadUInt32();
@@ -117,8 +135,9 @@ namespace LibH2A.Saber3D
     private static void ReadChunk_02( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Unknown Chunk
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       // This chunk appears to be a container for subsequent chunks
       //WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 02" );
@@ -127,8 +146,9 @@ namespace LibH2A.Saber3D
     private static void ReadChunk_03( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Buffer Type Info Chunk
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var buffers = data._buffers;
       var bufferTypes = Enum.GetValues<S3D_BufferType>().Cast<byte>().ToHashSet();
@@ -156,39 +176,45 @@ namespace LibH2A.Saber3D
       }
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 03" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_04( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Buffer Elem Sizes?
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var buffers = data.Buffers;
       for ( var i = 0; i < buffers.Count; i++ )
         buffers[ i ].ElementSize = reader.ReadUInt16();
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 04" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_05( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Buffer Lengths
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var buffers = data.Buffers;
       for ( var i = 0; i < buffers.Count; i++ )
         buffers[ i ].BufferLength = reader.ReadUInt32();
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 05" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_06( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Buffer Offsets
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var buffers = data.Buffers;
       for ( var i = 0; i < buffers.Count; i++ )
@@ -201,13 +227,15 @@ namespace LibH2A.Saber3D
       }
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 06" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_07( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Unknown Chunk
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       // This chunk appears to be a container for subsequent chunks
       //WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 07" );
@@ -216,8 +244,9 @@ namespace LibH2A.Saber3D
     private static void ReadChunk_08( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Mesh Data?
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var meshData = data._meshData = new S3D_MeshData[ data._meshCount ][];
       for ( var i = 0; i < meshData.Length; i++ )
@@ -235,13 +264,15 @@ namespace LibH2A.Saber3D
       }
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 08" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_09( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Unknown Chunk
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var meshInfo = data._meshInfo = new Unk_MeshInfo[ data._meshCount ];
       for ( var i = 0; i < meshInfo.Length; i++ )
@@ -258,13 +289,15 @@ namespace LibH2A.Saber3D
       }
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 09" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_10( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Unknown Chunk
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       // This chunk appears to be a container for subsequent chunks
       //WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 10" );
@@ -273,13 +306,17 @@ namespace LibH2A.Saber3D
     private static void ReadChunk_11( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // SubMesh Data
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var chunkStart = reader.BaseStream.Position;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
+
+      var seekCheck = ( chunkEnd - chunkStart ) % 12 == 0; // each element is 12 bytes
 
       var submeshes = data._submeshes;
       for ( var i = 0; i < data._subMeshCount; i++ )
       {
-        submeshes.Add( new S3D_SubMesh
+        var submesh = new S3D_SubMesh
         {
           VertOffset = reader.ReadUInt16(),
           VertCount = reader.ReadUInt16(),
@@ -287,9 +324,13 @@ namespace LibH2A.Saber3D
           FaceCount = reader.ReadUInt16(),
           NodeId = reader.ReadUInt16(),
           SkinCompoundId = reader.ReadUInt16()
-        } );
+        };
+        submeshes.Add( submesh );
 
-        if ( data._unkSeekFlag == 0x9 )
+        if ( reader.BaseStream.Position >= chunkEnd )
+          return;
+
+        if ( data._unkSeekFlag == 0x9 && seekCheck )
         {
           var unk_seekFlag = reader.ReadInt32();
           switch ( unk_seekFlag )
@@ -319,20 +360,23 @@ namespace LibH2A.Saber3D
     private static void ReadChunk_12( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // SubMesh-Mesh Id
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var submeshes = data._submeshes;
       for ( var i = 0; i < submeshes.Count; i++ )
         submeshes[ i ].Unk_MeshId = reader.ReadUInt32();
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 12" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_13( S3D_GeometryData data, EndianBinaryReader reader )
     {
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       // SubMesh Materials
       if ( chunkTag == 0x08 )
@@ -352,13 +396,15 @@ namespace LibH2A.Saber3D
       }
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 13" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_14( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // Bone Map?
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var boneMap = data._boneMap = new List<short[]>();
       while ( reader.BaseStream.Position < chunkEnd )
@@ -372,13 +418,15 @@ namespace LibH2A.Saber3D
       }
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 14" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_15( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // SubMesh Unknown Info
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var submeshes = data._submeshes;
       for ( var i = 0; i < submeshes.Count; i++ )
@@ -392,15 +440,17 @@ namespace LibH2A.Saber3D
         };
       }
 
-      // TODO: This isn't always reading to the end. Fix.
+      // TODO: This isn't always reading to the end. Investigate.
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 15" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_16( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // SubMesh Transform Info
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var submeshes = data._submeshes;
       for ( var i = 0; i < submeshes.Count; i++ )
@@ -423,13 +473,15 @@ namespace LibH2A.Saber3D
       }
 
       WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 16" );
+      reader.BaseStream.Position = chunkEnd;
     }
 
     private static void ReadChunk_17( S3D_GeometryData data, EndianBinaryReader reader )
     {
       // SubMesh Transform Info
-      var chunkTag = reader.ReadUInt16();
-      var chunkEnd = reader.ReadUInt32() + data._tplOffset;
+      var (chunkTag, chunkEnd, punt) = ReadChunkHeader( data, reader );
+      if ( punt )
+        return;
 
       var fileSize = reader.BaseStream.Length;
       var currentPos = reader.BaseStream.Position;
