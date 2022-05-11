@@ -19,7 +19,16 @@ namespace H2ARipper.Converters
       ConvertToDds( header, inFile );
     }
 
-    private static PctHeader ReadHeader( BinaryReader reader )
+    public static void Convert(Span<byte> data)
+    {
+        using var bs = new MemoryStream(data);
+        using var reader = new BinaryReader(bs);
+
+        var header = ReadHeader(reader);
+        ConvertToDds(header, inFile);
+    }
+
+        private static PctHeader ReadHeader( BinaryReader reader )
     {
       const short SENTINEL_SIGNATURE = 0xF0;
       const short SENTINEL_DIMENSIONS = 0x0102;
