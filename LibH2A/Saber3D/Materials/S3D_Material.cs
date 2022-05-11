@@ -12,6 +12,7 @@ namespace LibH2A.Saber3D.Materials
     public S3D_MaterialLayer Layer0;
     public S3D_MaterialLayer Layer1;
     public S3D_MaterialLayer Layer2;
+    public S3D_MaterialLayer Layer3;
     public S3D_MaterialExtraParams ExtraParams;
 
     public static S3D_Material Read( EndianBinaryReader reader )
@@ -46,6 +47,9 @@ namespace LibH2A.Saber3D.Materials
             break;
           case "layer2":
             material.Layer2 = S3D_MaterialLayer.Read( reader );
+            break;
+          case "layer3":
+            material.Layer3 = S3D_MaterialLayer.Read( reader );
             break;
           case "extraParams":
             material.ExtraParams = S3D_MaterialExtraParams.Read( reader );
