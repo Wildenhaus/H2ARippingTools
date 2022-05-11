@@ -41,6 +41,11 @@ namespace LibH2A.Saber3D
       get => _scripts;
     }
 
+    public S3D_GeometryNode this[ int index ]
+    {
+      get => Nodes[ index ];
+    }
+
     #endregion
 
     #region Constructor
