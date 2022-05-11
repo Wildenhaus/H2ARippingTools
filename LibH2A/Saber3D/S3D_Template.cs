@@ -10,7 +10,7 @@ namespace LibH2A.Saber3D
 
     #region Data Members
 
-    private readonly Stream _stream;
+    private Stream _stream;
 
     #endregion
 
@@ -19,6 +19,11 @@ namespace LibH2A.Saber3D
     public S3D_TemplateHeader Header { get; private set; }
 
     public S3D_Geometry Geometry { get; private set; }
+
+    public Stream Stream
+    {
+      get => _stream; //TODO
+    }
 
     #endregion
 
@@ -48,7 +53,7 @@ namespace LibH2A.Saber3D
       Assert( _stream != null, "File stream is null." );
 
       // TODO: Remove these hacks once Zata's PAK streaming is ready
-      var stream = CreateTplStreamSegment();
+      var stream = _stream = CreateTplStreamSegment();
       var reader = new EndianBinaryReader( stream, leaveOpen: true );
 
       stream.Position = FindDataOffset( stream, MAGIC_TPL1 );
