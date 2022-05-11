@@ -3,6 +3,7 @@
 
 using CliWrap;
 using DirectXTexNet;
+using System.IO;
 
 namespace H2ARipper.Converters
 {
@@ -19,7 +20,7 @@ namespace H2ARipper.Converters
       ConvertToDds( header, inFile );
     }
 
-    public static void Convert(Span<byte> data, in string outFile)
+    public static void Convert(byte[] data, in string outFile)
     {
         using var bs = new MemoryStream(data);
         using var reader = new BinaryReader(bs);
