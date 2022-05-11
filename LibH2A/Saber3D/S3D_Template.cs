@@ -45,15 +45,16 @@ namespace LibH2A.Saber3D
     private void Init()
     {
       Assert( _stream != null, "File stream is null." );
-      var reader = new EndianBinaryReader( _stream, leaveOpen: true );
 
-      // TODO: Remove this hack once Zata's PAK streaming is ready
-      SeekToTpl1();
+      // TODO: Remove these hacks once Zata's PAK streaming is ready
+      var stream = CreateTplStreamSegment();
+      var reader = new EndianBinaryReader( stream, leaveOpen: true );
+
+      stream.Position = FindDataOffset( stream, MAGIC_TPL1 );
 
       Header = S3D_TemplateHeader.Read( reader );
 
-      // TODO: Remove this hack once TPL1 parsing is ready
-      SeekToOGM1();
+      stream.Position = FindDataOffset( stream, MAGIC_OGM1 );
 
       Geometry = S3D_Geometry.Read( reader );
     }
@@ -65,57 +66,54 @@ namespace LibH2A.Saber3D
 
     #endregion
 
-    private void SeekToTpl1()
+    private static readonly byte[] MAGIC_1SERtpl = new byte[]
     {
-      _stream.Position = 0;
+      0x31, 0x53, 0x45, 0x52, 0x74, 0x70, 0x6C, 0x00
+    };
+
+    private static readonly byte[] MAGIC_TPL1 = new byte[]
+    {
+      0x54, 0x50, 0x4C, 0x31
+    };
+
+    private static readonly byte[] MAGIC_OGM1 = new byte[]
+    {
+      0x4F, 0x47, 0x4D, 0x31
+    };
+
+    private static long FindDataOffset( Stream stream, byte[] data )
+    {
+      stream.Position = 0;
       long found = -1;
       int curr;
-      while ( ( curr = _stream.ReadByte() ) > -1 )
+      while ( ( curr = stream.ReadByte() ) > -1 )
       {
-        if ( curr == 'T' )
+        if ( curr == data[ 0 ] )
         {
-          byte[] buffer = new byte[ 3 ];
-          _stream.Read( buffer, 0, 3 );
-          if ( buffer[ 0 ] == 'P' && buffer[ 1 ] == 'L' && buffer[ 2 ] == '1' )
+          stream.Position--;
+          byte[] buffer = new byte[ data.Length ];
+          stream.Read( buffer, 0, data.Length );
+          if ( buffer.SequenceEqual( data ) )
           {
-            found = _stream.Position - 4;
-            break;
-          }
-        }
-      }
-
-      if ( found > -1 )
-        _stream.Position = found;
-    }
-
-    private void SeekToOGM1()
-    {
-      _stream.Position = 0;
-      long found = -1;
-      int curr;
-      while ( ( curr = _stream.ReadByte() ) > -1 )
-      {
-        if ( curr == 'O' )
-        {
-          byte[] buffer = new byte[ 3 ];
-          _stream.Read( buffer, 0, 3 );
-          if ( buffer[ 0 ] == 'G' && buffer[ 1 ] == 'M' && buffer[ 2 ] == '1' )
-          {
-            found = _stream.Position - 4;
+            found = stream.Position - data.Length;
             break;
           }
           else
-            _stream.Position -= 3;
+            stream.Position -= data.Length - 1;
         }
       }
 
-      if ( found > -1 )
-        _stream.Position = found;
+      return found;
     }
 
-    private void CreateTplStreamSegment()
+    private Stream CreateTplStreamSegment()
     {
+      var memoryStream = new MemoryStream();
+      _stream.Position = FindDataOffset( _stream, MAGIC_1SERtpl );
+      _stream.CopyTo( memoryStream );
 
+      memoryStream.Position = 0;
+      return memoryStream;
     }
 
   }
