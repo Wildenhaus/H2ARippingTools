@@ -150,10 +150,13 @@ namespace LibH2A.Saber3D.Geometry
     #region IEnumerable Methods
 
     public IEnumerator<S3D_Mesh> GetEnumerator()
-      => _meshes.GetEnumerator() as IEnumerator<S3D_Mesh>;
+    {
+      foreach ( var mesh in _meshes )
+        yield return mesh;
+    }
 
     IEnumerator IEnumerable.GetEnumerator()
-      => _meshes.GetEnumerator();
+      => GetEnumerator();
 
     #endregion
 

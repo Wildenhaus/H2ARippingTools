@@ -1,4 +1,5 @@
 ﻿using LibH2A.Common;
+using LibH2A.Saber3D.Geometry;
 using static Haus.Assertions;
 
 namespace LibH2A.Saber3D

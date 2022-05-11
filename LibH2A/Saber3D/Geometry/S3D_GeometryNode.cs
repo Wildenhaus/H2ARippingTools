@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Numerics;
 
-namespace LibH2A.Saber3D
+namespace LibH2A.Saber3D.Geometry
 {
 
   [DebuggerDisplay( "Node[{Index}]({Name})" )]

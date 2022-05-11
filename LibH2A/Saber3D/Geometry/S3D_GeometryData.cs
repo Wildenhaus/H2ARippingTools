@@ -10,6 +10,8 @@ namespace LibH2A.Saber3D.Geometry
 
     #region Properties
 
+    public S3D_Geometry Parent { get; }
+
     public UInt16 RootNodeIndex { get; private set; }
     public UInt32 NodeCount { get; private set; }
     public UInt32 BufferCount { get; private set; }
@@ -24,13 +26,14 @@ namespace LibH2A.Saber3D.Geometry
 
     #region Constructor
 
-    private S3D_GeometryData()
+    private S3D_GeometryData( S3D_Geometry parent )
     {
+      Parent = parent;
     }
 
-    public static S3D_GeometryData Read( EndianBinaryReader reader )
+    public static S3D_GeometryData Read( S3D_Geometry geometry, EndianBinaryReader reader )
     {
-      var data = new S3D_GeometryData();
+      var data = new S3D_GeometryData( geometry );
 
       BlockType blockType = ReadBlockType( reader );
       while ( blockType != BlockType.Footer )

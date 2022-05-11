@@ -1,7 +1,6 @@
 ﻿using LibH2A.Common;
-using LibH2A.Saber3D.Geometry;
 
-namespace LibH2A.Saber3D
+namespace LibH2A.Saber3D.Geometry
 {
 
   public class S3D_Geometry
@@ -24,8 +23,8 @@ namespace LibH2A.Saber3D
     {
       var geometry = new S3D_Geometry();
 
-      geometry.Nodes = S3D_GeometryNodeCollection.Read( reader );
-      geometry.Data = S3D_GeometryData.Read( reader );
+      geometry.Nodes = S3D_GeometryNodeCollection.Read( geometry, reader );
+      geometry.Data = S3D_GeometryData.Read( geometry, reader );
 
       return geometry;
     }

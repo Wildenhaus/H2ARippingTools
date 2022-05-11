@@ -8,10 +8,10 @@ namespace LibH2A.Saber3D.Geometry
   {
 
     [FieldOffset( 0x0 )]
-    public UInt64 BufferId;
+    public UInt32 BufferId;
 
     [FieldOffset( 0x4 )]
-    public UInt64 SubBufferOffset;
+    public UInt32 SubBufferOffset;
 
   }
 

@@ -334,10 +334,13 @@ namespace LibH2A.Saber3D.Geometry
     #region IEnumerable Methods
 
     public IEnumerator<S3D_SubMesh> GetEnumerator()
-      => _submeshes.GetEnumerator() as IEnumerator<S3D_SubMesh>;
+    {
+      foreach ( var submesh in _submeshes )
+        yield return submesh;
+    }
 
     IEnumerator IEnumerable.GetEnumerator()
-      => _submeshes.GetEnumerator();
+      => GetEnumerator();
 
     #endregion
 
