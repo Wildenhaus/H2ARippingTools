@@ -6,7 +6,7 @@ using System.Text;
 namespace LibH2A.Common
 {
 
-  [DebuggerDisplay( "BinaryReader({BaseStream.Position})" )]
+  [DebuggerDisplay( "BinaryReader({Position})" )]
   public unsafe sealed class EndianBinaryReader : BinaryReader
   {
 
@@ -22,6 +22,14 @@ namespace LibH2A.Common
     {
       get => _endianness;
       set => _endianness = value;
+    }
+
+    public long Position
+    {
+      [MethodImpl( MethodImplOptions.AggressiveInlining )]
+      get => BaseStream.Position;
+      [MethodImpl( MethodImplOptions.AggressiveInlining )]
+      set => BaseStream.Position = value;
     }
 
     private bool NeedsByteOrderSwap
@@ -245,6 +253,15 @@ namespace LibH2A.Common
     {
       var value = ReadByte();
       BaseStream.Position--;
+      return value;
+    }
+
+    //[DebuggerHidden]
+    [MethodImpl( MethodImplOptions.AggressiveInlining )]
+    public short PeekInt16()
+    {
+      var value = ReadInt16();
+      BaseStream.Position -= sizeof( short );
       return value;
     }
 

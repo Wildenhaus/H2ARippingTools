@@ -1,7 +1,7 @@
 ﻿using LibH2A.Common;
 using static Haus.Assertions;
 
-namespace LibH2A.Saber3D
+namespace LibH2A.Saber3D.Geometry
 {
 
   public class S3D_GeometryNodeCollection
@@ -25,6 +25,8 @@ namespace LibH2A.Saber3D
     #endregion
 
     #region Properties
+
+    public S3D_Geometry Parent { get; }
 
     public IReadOnlyList<S3D_BoundingBox> BoundingBoxes
     {
@@ -50,14 +52,15 @@ namespace LibH2A.Saber3D
 
     #region Constructor
 
-    private S3D_GeometryNodeCollection()
+    private S3D_GeometryNodeCollection( S3D_Geometry parent )
     {
+      Parent = parent;
       _nodes = new List<S3D_GeometryNode>();
       _boundingBoxes = new List<S3D_BoundingBox>();
       _scripts = new List<string>();
     }
 
-    public static S3D_GeometryNodeCollection Read( EndianBinaryReader reader )
+    public static S3D_GeometryNodeCollection Read( S3D_Geometry parent, EndianBinaryReader reader )
     {
       /* Node Sections:
        *  01: Node Indices
@@ -80,7 +83,7 @@ namespace LibH2A.Saber3D
 
       CheckSignature( reader );
 
-      var nodeData = new S3D_GeometryNodeCollection();
+      var nodeData = new S3D_GeometryNodeCollection( parent );
 
       ReadSectionInfo( nodeData, reader );
 
@@ -169,7 +172,7 @@ namespace LibH2A.Saber3D
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Name = reader.ReadPascalString32();
+        nodes[ i ].NodeName = reader.ReadPascalString32();
     }
 
     private static void ReadSection_UnkSection03( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -369,7 +372,7 @@ namespace LibH2A.Saber3D
       if ( sentinel == 0x1 )
       {
         for ( var i = 0; i < nodes.Count; i++ )
-          nodes[ i ].Unk_15_BoneName = reader.ReadPascalString16();
+          nodes[ i ].BoneName = reader.ReadPascalString16();
       }
 
       // If sentinel is 8, it's some kind of scripting

@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace LibH2A.Saber3D
+namespace LibH2A.Saber3D.Geometry
 {
 
   [StructLayout( LayoutKind.Explicit, Size = 0x8 )]

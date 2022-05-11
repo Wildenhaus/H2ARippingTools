@@ -1,6 +1,6 @@
 ﻿using System.Numerics;
 
-namespace LibH2A.Saber3D
+namespace LibH2A.Saber3D.Geometry
 {
 
   public struct S3D_BoundingBox
