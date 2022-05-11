@@ -9,6 +9,7 @@ namespace LibH2A.Saber3D.Geometry
 
     public S3D_GeometryData Parent { get; }
 
+    public UInt16 NodeId { get; set; }
     public UInt32 MeshId { get; set; }
     public S3D_SubMeshInfo SubMeshInfo { get; set; }
     public S3D_SubMeshBufferInfo BufferInfo { get; set; }

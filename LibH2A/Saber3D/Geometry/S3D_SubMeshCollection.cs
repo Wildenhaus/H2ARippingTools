@@ -15,6 +15,8 @@ namespace LibH2A.Saber3D.Geometry
 
     private S3D_SubMesh[] _submeshes;
 
+    public List<short[]> _boneMap;
+
     #endregion
 
     #region Properties
@@ -190,8 +192,16 @@ namespace LibH2A.Saber3D.Geometry
     {
       var blockEndOffset = reader.ReadUInt32();
 
-      // TODO: Implement
-      reader.Position = blockEndOffset;
+      var boneMap = new List<short[]>();
+      while ( reader.Position < blockEndOffset )
+      {
+        var count = reader.ReadByte();
+        var arr = new short[ count ];
+        for ( var i = 0; i < count; i++ )
+          arr[ i ] = reader.ReadInt16();
+        boneMap.Add( arr );
+      }
+      submeshes._boneMap = boneMap;
 
       if ( reader.Position > blockEndOffset )
         Fail( "Over-read the SubMesh BoneMap Block!" );
@@ -203,18 +213,18 @@ namespace LibH2A.Saber3D.Geometry
     {
       var blockEndOffset = reader.ReadUInt32();
 
-      //for ( var i = 0; i < submeshes.Count; i++ )
-      //{
-      //  var info = new S3D_SubMeshInfo
-      //  {
-      //    Unk_01 = reader.ReadByte(),
-      //    Unk_02 = reader.ReadByte(),
-      //    Unk_03 = reader.ReadByte(),
-      //    Unk_04 = reader.ReadByte(),
-      //  };
+      for ( var i = 0; i < submeshes.Count; i++ )
+      {
+        var info = new S3D_SubMeshInfo
+        {
+          Unk_01 = reader.ReadByte(),
+          Unk_02 = reader.ReadByte(),
+          Unk_03 = reader.ReadByte(),
+          Unk_04 = reader.ReadByte(),
+        };
 
-      //  submeshes[ i ].SubMeshInfo = info;
-      //}
+        submeshes[ i ].SubMeshInfo = info;
+      }
 
       // TODO: This is inconsistent. Investigate
       // Skipping for now since it's all unknowns
@@ -262,7 +272,7 @@ namespace LibH2A.Saber3D.Geometry
 
       for ( var i = 0; i < submeshes.Count; i++ )
       {
-        _ = reader.ReadUInt16();
+        submeshes[ i ].NodeId = reader.ReadUInt16();
         var stringLength = reader.ReadUInt16();
         _ = reader.ReadUInt16();
 
@@ -282,7 +292,7 @@ namespace LibH2A.Saber3D.Geometry
 
       for ( var i = 0; i < submeshes.Count; i++ )
       {
-        _ = reader.ReadUInt16(); // Unk
+        submeshes[ i ].NodeId = reader.ReadUInt16(); // Unk
 
         // TODO: This is pretty much identical to dynamic, except there is no length for the property names.
         // Skipping for now.
@@ -302,7 +312,7 @@ namespace LibH2A.Saber3D.Geometry
 
       for ( var i = 0; i < submeshes.Count; i++ )
       {
-        _ = reader.ReadUInt16(); // Unk
+        submeshes[ i ].NodeId = reader.ReadUInt16();
         submeshes[ i ].Material = S3D_Material.Read( reader );
       }
 

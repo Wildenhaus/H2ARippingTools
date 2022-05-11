@@ -172,7 +172,7 @@ namespace LibH2A.Saber3D.Geometry
         return;
 
       for ( var i = 0; i < nodes.Count; i++ )
-        nodes[ i ].Name = reader.ReadPascalString32();
+        nodes[ i ].NodeName = reader.ReadPascalString32();
     }
 
     private static void ReadSection_UnkSection03( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
@@ -372,7 +372,7 @@ namespace LibH2A.Saber3D.Geometry
       if ( sentinel == 0x1 )
       {
         for ( var i = 0; i < nodes.Count; i++ )
-          nodes[ i ].Unk_15_BoneName = reader.ReadPascalString16();
+          nodes[ i ].BoneName = reader.ReadPascalString16();
       }
 
       // If sentinel is 8, it's some kind of scripting

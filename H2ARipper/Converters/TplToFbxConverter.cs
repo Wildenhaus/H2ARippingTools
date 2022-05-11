@@ -36,47 +36,21 @@ namespace H2ARipper.Converters
 
     private static void AddMesh( Scene scene, S3D_Mesh mesh, EndianBinaryReader reader )
     {
-      //TryPrintMeshName( mesh );
+      var nodes = mesh.Parent.Parent.Nodes;
 
       var meshNode = new Node();
+      meshNode.Transform.Scale = new Vector3( 10, 10, 10 );
       scene.RootNode.AddChildNode( meshNode );
 
       foreach ( var subMesh in mesh.SubMeshes )
-        AddSubMesh( meshNode, subMesh, reader );
-    }
-
-    private static void TryPrintMeshName( S3D_Mesh mesh )
-    {
-      var nodes = mesh.Parent.Parent.Nodes;
-      try
       {
-        Console.WriteLine( nodes[ mesh.MeshInfo.Unk_01 ].Unk_15_BoneName );
-        Console.WriteLine( nodes[ mesh.MeshInfo.Unk_03 ].Unk_15_BoneName );
-        Console.WriteLine( nodes[ mesh.MeshInfo.Unk_04 ].Unk_15_BoneName );
-        Console.WriteLine( nodes[ mesh.MeshInfo.Unk_05 ].Unk_15_BoneName );
-      }
-      catch ( Exception ex )
-      {
-
+        var submeshNode = AddSubMesh( meshNode, subMesh, reader );
+        submeshNode.Name = nodes[ subMesh.NodeId ].Name;
       }
     }
 
-    private static void TryPrintSubMeshName( S3D_SubMesh mesh )
+    private static Node AddSubMesh( Node meshNode, S3D_SubMesh submeshData, EndianBinaryReader reader )
     {
-      var nodes = mesh.Parent.Parent.Nodes;
-      try
-      {
-        Console.WriteLine( nodes[ mesh.Parent.RootNodeIndex ].Unk_15_BoneName );
-      }
-      catch ( Exception ex )
-      {
-
-      }
-    }
-
-    private static void AddSubMesh( Node meshNode, S3D_SubMesh submeshData, EndianBinaryReader reader )
-    {
-      TryPrintSubMeshName( submeshData );
       var meshData = submeshData.ParentMesh;
       var bufferData = meshData.Parent.Buffers;
 
@@ -111,6 +85,11 @@ namespace H2ARipper.Converters
 
             foreach ( var f in faces )
               submeshEntity.CreatePolygon( f[ 0 ], f[ 1 ], f[ 2 ] );
+          }
+          break;
+          case S3D_GeometryBufferType.Unk_Face:
+          {
+
           }
           break;
           case S3D_GeometryBufferType.StaticVert:
@@ -215,6 +194,8 @@ namespace H2ARipper.Converters
             }
           }
           break;
+          default:
+            break;
         }
       }
 
@@ -223,7 +204,10 @@ namespace H2ARipper.Converters
       submeshNode.Transform.Translation = new Vector3( pos.X, pos.Y, pos.Z );
 
       var scale = submeshData.Scale;
-      submeshNode.Transform.Scale = new Vector3( scale.X, scale.Y, scale.Z );
+      const float scaleFactor = 1f;
+      submeshNode.Transform.Scale = new Vector3( scale.X * scaleFactor, scale.Y * scaleFactor, scale.Z * scaleFactor );
+
+      return submeshNode;
     }
 
   }

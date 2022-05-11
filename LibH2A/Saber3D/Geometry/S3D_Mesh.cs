@@ -18,6 +18,7 @@
     public S3D_Mesh( S3D_GeometryData parent, int id )
     {
       Parent = parent;
+      Id = id;
     }
 
   }

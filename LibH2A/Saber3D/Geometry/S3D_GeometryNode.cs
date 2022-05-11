@@ -4,11 +4,11 @@ using System.Numerics;
 namespace LibH2A.Saber3D.Geometry
 {
 
-  [DebuggerDisplay( "Node[{Index}]({Name})" )]
+  [DebuggerDisplay( "Node[{Index}]({Unk_15_BoneName})" )]
   public class S3D_GeometryNode
   {
     public ushort Index { get; set; }
-    public string Name { get; set; }
+    public string NodeName { get; set; }
     public S3D_Geometry_UnkSection03 Unk_03 { get; set; }
     public ushort Unk_04_ParentId { get; set; }
     public ushort Unk_05_SiblingId { get; set; }
@@ -21,8 +21,19 @@ namespace LibH2A.Saber3D.Geometry
     // Section 12? BoundingBoxes, doesn't seem to correlate with nodecount
     public string Unk_13_BoneHeirarchy { get; set; }
     // Section 14? Mostly zero data
-    public string Unk_15_BoneName { get; set; }
+    public string BoneName { get; set; }
     public string Unk_16_ExportName { get; set; }
+
+    public string Name
+    {
+      get
+      {
+        if ( !string.IsNullOrEmpty( NodeName ) )
+          return NodeName;
+
+        return BoneName;
+      }
+    }
   }
 
   public struct S3D_Geometry_UnkSection03
