@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Saber
 {
-    namespace File
+    namespace Filetypes
     {
         public class SERPak
         {
