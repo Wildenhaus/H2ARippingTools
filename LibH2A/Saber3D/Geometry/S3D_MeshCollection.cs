@@ -124,8 +124,11 @@ namespace LibH2A.Saber3D.Geometry
 
         for ( var j = 0; j < count; j++ )
         {
-          buffers[ j ].BufferId = reader.ReadUInt32();
-          buffers[ j ].SubBufferOffset = reader.ReadUInt32();
+          buffers[ j ] = new S3D_MeshBufferInfo
+          {
+            BufferId = reader.ReadUInt32(),
+            SubBufferOffset = reader.ReadUInt32(),
+          };
         }
       }
 
