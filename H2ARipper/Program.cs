@@ -13,8 +13,8 @@ const string OUT_PATH = @"G:\h2a\d\";
 //ReadTpl( @"G:\h2a\d\shared\_database_\dervish__h.tpl" );
 //ReadTpl( @"G:\h2a\d\shared\_database_\mortar__h.tpl" );
 //ReadTpl( @"G:\h2a\d\01b_spacestation\_scene_\tpl\sm_geom_00008.tpl" );
-//ReadAllTpls();// NoCatch();
-ExportTpl( @"G:\h2a\d\shared\_database_\dervish__h.tpl" );
+ReadAllTpls();// NoCatch();
+//ExportTpl( @"G:\h2a\d\shared\_database_\dervish__h.tpl" );
 
 
 void DecompressAll()

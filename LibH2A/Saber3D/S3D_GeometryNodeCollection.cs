@@ -112,6 +112,9 @@ namespace LibH2A.Saber3D
       if ( nodeData._sectionCount >= 16 )
         ReadSection_UnkSection16( nodeData, reader );
 
+      if ( reader.PeekByte() != 0 )
+        ReadSection_UnkSection17( nodeData, reader );
+
       return nodeData;
     }
 
@@ -397,6 +400,19 @@ namespace LibH2A.Saber3D
 
       for ( var i = 0; i < nodes.Count; i++ )
         nodes[ i ].Unk_16_ExportName = reader.ReadPascalString16();
+    }
+
+    private static void ReadSection_UnkSection17( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
+    {
+      var count = reader.ReadInt16();
+      _ = reader.ReadUInt16();
+      _ = reader.ReadByte();
+
+      for ( var i = 0; i < count; i++ )
+      {
+        _ = reader.ReadInt32();
+        _ = reader.ReadPascalString32();
+      }
     }
 
     #endregion

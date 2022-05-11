@@ -194,6 +194,26 @@ namespace Haus
 
     #endregion
 
+    #region Warn Methods
+
+    [DebuggerHidden]
+    public static void Warn( string format, params object[] args )
+    {
+      var col = Console.ForegroundColor;
+      Console.ForegroundColor = ConsoleColor.Red;
+      Console.WriteLine( format, args );
+      Console.ForegroundColor = col;
+    }
+
+    [DebuggerHidden]
+    public static void WarnIf( bool expression, string format, params object[] args )
+    {
+      if ( expression )
+        Warn( format, args );
+    }
+
+    #endregion
+
     #region Helper Methods
 
     /// <summary>

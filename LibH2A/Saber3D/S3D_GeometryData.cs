@@ -44,9 +44,6 @@ namespace LibH2A.Saber3D
 
     public S3D_MeshData[][] MeshData { get => _meshData; }
 
-    public List<S3D_Face> Faces { get; set; }
-    public List<S3D_Vertex> Vertices { get; set; }
-
 
     #endregion
 
@@ -88,8 +85,6 @@ namespace LibH2A.Saber3D
       ReadChunk_16( data, reader );
       ReadChunk_17( data, reader );
 
-      ParseSubMeshData( data, reader );
-
       return data;
     }
 
@@ -125,7 +120,8 @@ namespace LibH2A.Saber3D
       var chunkTag = reader.ReadUInt16();
       var chunkEnd = reader.ReadUInt32() + data._tplOffset;
 
-      //Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 02" );
+      // This chunk appears to be a container for subsequent chunks
+      //WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 02" );
     }
 
     private static void ReadChunk_03( S3D_GeometryData data, EndianBinaryReader reader )
@@ -159,7 +155,7 @@ namespace LibH2A.Saber3D
         } );
       }
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 03" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 03" );
     }
 
     private static void ReadChunk_04( S3D_GeometryData data, EndianBinaryReader reader )
@@ -172,7 +168,7 @@ namespace LibH2A.Saber3D
       for ( var i = 0; i < buffers.Count; i++ )
         buffers[ i ].ElementSize = reader.ReadUInt16();
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 04" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 04" );
     }
 
     private static void ReadChunk_05( S3D_GeometryData data, EndianBinaryReader reader )
@@ -185,7 +181,7 @@ namespace LibH2A.Saber3D
       for ( var i = 0; i < buffers.Count; i++ )
         buffers[ i ].BufferLength = reader.ReadUInt32();
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 05" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 05" );
     }
 
     private static void ReadChunk_06( S3D_GeometryData data, EndianBinaryReader reader )
@@ -204,7 +200,7 @@ namespace LibH2A.Saber3D
         reader.BaseStream.Position += buffer.BufferLength;
       }
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 06" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 06" );
     }
 
     private static void ReadChunk_07( S3D_GeometryData data, EndianBinaryReader reader )
@@ -213,7 +209,8 @@ namespace LibH2A.Saber3D
       var chunkTag = reader.ReadUInt16();
       var chunkEnd = reader.ReadUInt32() + data._tplOffset;
 
-      //Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 07" );
+      // This chunk appears to be a container for subsequent chunks
+      //WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 07" );
     }
 
     private static void ReadChunk_08( S3D_GeometryData data, EndianBinaryReader reader )
@@ -237,7 +234,7 @@ namespace LibH2A.Saber3D
         }
       }
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 08" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 08" );
     }
 
     private static void ReadChunk_09( S3D_GeometryData data, EndianBinaryReader reader )
@@ -260,7 +257,7 @@ namespace LibH2A.Saber3D
         };
       }
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 09" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 09" );
     }
 
     private static void ReadChunk_10( S3D_GeometryData data, EndianBinaryReader reader )
@@ -269,7 +266,8 @@ namespace LibH2A.Saber3D
       var chunkTag = reader.ReadUInt16();
       var chunkEnd = reader.ReadUInt32() + data._tplOffset;
 
-      //Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 10" );
+      // This chunk appears to be a container for subsequent chunks
+      //WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 10" );
     }
 
     private static void ReadChunk_11( S3D_GeometryData data, EndianBinaryReader reader )
@@ -314,7 +312,7 @@ namespace LibH2A.Saber3D
       }
 
       // TODO: When _unkSeekFlag is not 9, this assert fails
-      //Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 11" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 11" );
       reader.BaseStream.Position = chunkEnd;
     }
 
@@ -328,7 +326,7 @@ namespace LibH2A.Saber3D
       for ( var i = 0; i < submeshes.Count; i++ )
         submeshes[ i ].Unk_MeshId = reader.ReadUInt32();
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 12" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 12" );
     }
 
     private static void ReadChunk_13( S3D_GeometryData data, EndianBinaryReader reader )
@@ -349,11 +347,11 @@ namespace LibH2A.Saber3D
       }
       else
       {
-        // TODO: Unknown Material Format. Just one string w/ some additional data.
+        // TODO: Unknown Material Format. Just strings w/ some additional data.
         reader.BaseStream.Position = chunkEnd;
       }
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 13" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 13" );
     }
 
     private static void ReadChunk_14( S3D_GeometryData data, EndianBinaryReader reader )
@@ -373,7 +371,7 @@ namespace LibH2A.Saber3D
         boneMap.Add( subArray );
       }
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 14" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 14" );
     }
 
     private static void ReadChunk_15( S3D_GeometryData data, EndianBinaryReader reader )
@@ -395,8 +393,7 @@ namespace LibH2A.Saber3D
       }
 
       // TODO: This isn't always reading to the end. Fix.
-      //Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 15" );
-      reader.BaseStream.Position = chunkEnd;
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 15" );
     }
 
     private static void ReadChunk_16( S3D_GeometryData data, EndianBinaryReader reader )
@@ -425,7 +422,7 @@ namespace LibH2A.Saber3D
         };
       }
 
-      Assert( reader.BaseStream.Position == chunkEnd, "Did not read all of Chunk 16" );
+      WarnIf( reader.BaseStream.Position != chunkEnd, "Did not read all of Chunk 16" );
     }
 
     private static void ReadChunk_17( S3D_GeometryData data, EndianBinaryReader reader )
@@ -437,42 +434,7 @@ namespace LibH2A.Saber3D
       var fileSize = reader.BaseStream.Length;
       var currentPos = reader.BaseStream.Position;
 
-      Assert( fileSize == currentPos, $"Finished reading, but the file still has {fileSize - currentPos} more bytes." );
-    }
-
-    private static void ParseSubMeshData( S3D_GeometryData data, EndianBinaryReader reader )
-    {
-      var vertbuf = data.Buffers.First( x => x.BufferType == S3D_BufferType.StaticVert );
-      reader.Seek( vertbuf.DataOffset, SeekOrigin.Begin );
-      var verts = data.Vertices = new List<S3D_Vertex>();
-      for ( var i = 0; i < vertbuf.BufferLength; i += vertbuf.ElementSize )
-      {
-        verts.Add( new S3D_Vertex { X = reader.ReadInt16(), Y = reader.ReadInt16(), Z = reader.ReadInt16(), W = reader.ReadInt16() } );
-        reader.BaseStream.Position += vertbuf.ElementSize - 8;
-      }
-
-      var facebuf = data.Buffers.First( x => x.BufferType == S3D_BufferType.Face );
-      reader.Seek( facebuf.DataOffset, SeekOrigin.Begin );
-      var faces = data.Faces = new List<S3D_Face>();
-      for ( var i = 0; i < facebuf.BufferLength; i += 6 )
-      {
-        faces.Add( new S3D_Face { A = reader.ReadInt16(), B = reader.ReadInt16(), C = reader.ReadInt16() } );
-      }
-
-      foreach ( var submesh in data._submeshes )
-      {
-        ParseSubMeshVertices( submesh, reader );
-        ParseSubMeshFaces( submesh, reader );
-      }
-    }
-
-    private static void ParseSubMeshVertices( S3D_SubMesh submesh, EndianBinaryReader reader )
-    {
-    }
-
-    private static void ParseSubMeshFaces( S3D_SubMesh submesh, EndianBinaryReader reader )
-    {
-
+      WarnIf( fileSize != currentPos, $"Finished reading, but the file still has {fileSize - currentPos} more bytes." );
     }
 
     #endregion
@@ -548,9 +510,6 @@ namespace LibH2A.Saber3D
       public S3D_Material Material { get; set; }
       public Unk_SubMeshInfo UnkInfo { get; set; }
       public S3D_SubMeshTransformInfo TransformInfo { get; set; }
-
-      public IReadOnlyList<S3D_Face> Faces { get; set; }
-      public IReadOnlyList<S3D_Vertex> Vertices { get; set; }
     }
 
     public struct Unk_SubMeshInfo
