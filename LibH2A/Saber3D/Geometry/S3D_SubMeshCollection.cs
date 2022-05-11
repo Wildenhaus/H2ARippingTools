@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using System.Numerics;
 using LibH2A.Common;
 using LibH2A.Saber3D.Materials;
@@ -7,7 +8,7 @@ using static Haus.Assertions;
 namespace LibH2A.Saber3D.Geometry
 {
 
-  public class S3D_SubMeshCollection
+  public class S3D_SubMeshCollection : IEnumerable<S3D_SubMesh>
   {
 
     #region Data Members
@@ -327,6 +328,16 @@ namespace LibH2A.Saber3D.Geometry
       Materials_Static = 0x0007,
       Materials_Dynamic = 0x0008,
     }
+
+    #endregion
+
+    #region IEnumerable Methods
+
+    public IEnumerator<S3D_SubMesh> GetEnumerator()
+      => _submeshes.GetEnumerator() as IEnumerator<S3D_SubMesh>;
+
+    IEnumerator IEnumerable.GetEnumerator()
+      => _submeshes.GetEnumerator();
 
     #endregion
 

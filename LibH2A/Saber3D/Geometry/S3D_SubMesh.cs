@@ -18,6 +18,11 @@ namespace LibH2A.Saber3D.Geometry
     public Vector3 Position { get; set; }
     public Vector3 Scale { get; set; }
 
+    public S3D_Mesh ParentMesh
+    {
+      get => Parent.Meshes[ ( int ) MeshId ];
+    }
+
     public S3D_SubMesh( S3D_GeometryData parent )
     {
       Parent = parent;

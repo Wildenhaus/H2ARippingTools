@@ -1,11 +1,12 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using LibH2A.Common;
 using static Haus.Assertions;
 
 namespace LibH2A.Saber3D.Geometry
 {
 
-  public class S3D_MeshCollection
+  public class S3D_MeshCollection : IEnumerable<S3D_Mesh>
   {
 
     #region Data Members
@@ -37,7 +38,7 @@ namespace LibH2A.Saber3D.Geometry
       Parent = parent;
       _meshes = new S3D_Mesh[ parent.MeshCount ];
       for ( var i = 0; i < _meshes.Length; i++ )
-        _meshes[ i ] = new S3D_Mesh( parent );
+        _meshes[ i ] = new S3D_Mesh( parent, i );
     }
 
     public static S3D_MeshCollection Read( S3D_GeometryData parent, EndianBinaryReader reader )
@@ -143,6 +144,16 @@ namespace LibH2A.Saber3D.Geometry
       MeshInfo = 0x0000,
       BufferInfo = 0x0002
     }
+
+    #endregion
+
+    #region IEnumerable Methods
+
+    public IEnumerator<S3D_Mesh> GetEnumerator()
+      => _meshes.GetEnumerator() as IEnumerator<S3D_Mesh>;
+
+    IEnumerator IEnumerable.GetEnumerator()
+      => _meshes.GetEnumerator();
 
     #endregion
 
