@@ -5,7 +5,6 @@ namespace Saber3D.Compression
 
   public class H2ADecompressionStream : Stream
   {
-
     // Required for Stream --------------------------------------------------------
     public override bool CanRead { get { return true; } }
     public override bool CanSeek { get { return true; } }
@@ -28,18 +27,6 @@ namespace Saber3D.Compression
     private const int HEADER_SIZE = 0x600000;
     private const int CHUNK_SIZE = 0x8000;
     private const int MAX_CHUNKS_CNT = ( HEADER_SIZE - sizeof( long ) ) / sizeof( long );         // 0xBFFFF = (Header size - (count & compressed flag)) / sizeof Offsets
-
-    // CHANGING CACHE SIZE WILL CLEAR THE CACHE
-    private long _cacheSize = 0x0;
-    public long ChacheSize
-    {
-      get { return _cacheSize; }
-      protected set
-      {
-        _cacheSize = value;
-        _cache = new byte[ value ];
-      }
-    }
 
     // Load from file
     public H2ADecompressionStream( in string file )
@@ -72,12 +59,7 @@ namespace Saber3D.Compression
         Array.Copy( _cache, ( int ) Position, buffer, 0, buffer.Length );
       else                // Else no decompression needed. Just read from the file adjust for header
       {
-        // NOTE - I use the first offset here instead of HEADER_SIZE because some compressed files don't follow
-        // The specification Saber designed. The extra padding in a compressed files' header isn't required for the engine to
-        // work properly. Some (community made) compression algorithms leave out the unneeded 0s. Because of this the headersize
-        // may not be 0x60'0000; however, the first offset will ALWAYS match the size of the header (or else the file is garbage)
-        Parser.BaseStream.Seek( offset + Offsets[ 0 ], SeekOrigin.Begin );
-
+        Parser.BaseStream.Seek( Position, SeekOrigin.Begin );
         // Read and validate the amount of read bytes
         if ( Parser.BaseStream.Read( buffer, 0, size ) is int readData && readData != size )
           throw new OverflowException();          // Pedantic error. We should NEVER recover partial data.
@@ -90,19 +72,19 @@ namespace Saber3D.Compression
     public override long Seek( long offset, SeekOrigin origin )
     {
       // Bounds checking
-      if ( offset > Length )
+      if ( offset > ( _isCompressed ? _cache.Length : Parser.BaseStream.Length ) )
         throw new OverflowException();
 
       switch ( origin )
       {
         case SeekOrigin.Begin:
-          Position = offset;
+          Position = _isCompressed ? offset : offset + Offsets[ 0 ];
           return Position;
         case SeekOrigin.Current:
-          Position += offset;
+          Position += _isCompressed ? offset : offset + Offsets[ 0 ];
           return Position;
         case SeekOrigin.End:
-          Position = Length - offset;
+          Position += _isCompressed ? Length - offset : Length - offset + Offsets[ 0 ];
           return Position;
       }
 
@@ -129,19 +111,24 @@ namespace Saber3D.Compression
     // I don't know c# well enough to thread this; however it should be possible.
     // Requires shared memory for _cache; however, there wont be a race condition as the same
     // memory won't be written to at the same time. it shouldn't be too tough.
-    private void DecompressRange( int startOffset, int endOffset )
+    private void DecompressRange( long startOffset, long endOffset )
     {
       // Bounds checking
       // Note Bounds checking is strict here. I can set soft boundaries where if start of bounds is in file
       // and end is out of file I read remaining data to EOF; however, all sizes and offsets are known and must
       // be valid. In the attempt to avoid potentially garbage data (or if someone opens a non-H2A Compressed file)
       // I'm going to be pedantic about bounds checking
-      if ( startOffset > Length || endOffset > Length )
-        throw new OverflowException();
+      if ( _isCompressed )
+      {
+        if ( startOffset > Length || endOffset > Length )
+          throw new OverflowException();
+      }
+      else
+        return;
 
       // Find which chunk indices the requested data should be in, and decompress them if they haven't been already.
       var (indexStart, indexEnd) = GetIndicesFromRange( startOffset, endOffset );
-      for ( int i = indexStart; i < indexEnd; i++ )
+      for ( int i = ( int ) indexStart; i < indexEnd; i++ )
       {
         if ( _alreadyDecompressed[ i ] || !_isCompressed )
           continue;
@@ -181,7 +168,7 @@ namespace Saber3D.Compression
     }
 
     // Convertes offset range into index range
-    private (int, int) GetIndicesFromRange( in int start, in int end )
+    private (long, long) GetIndicesFromRange( in long start, in long end )
     {
       return (start / CHUNK_SIZE, ( int ) Math.Ceiling( ( double ) end / CHUNK_SIZE ));
     }
@@ -200,7 +187,7 @@ namespace Saber3D.Compression
     protected void AllocateMemory( in int count )
     {
       if ( count > 0 )
-        ChacheSize = ( count * CHUNK_SIZE );
+        _cache = new byte[ count * CHUNK_SIZE ];
       _alreadyDecompressed = new List<bool>( new bool[ count ] );
     }
 
@@ -255,7 +242,8 @@ namespace Saber3D.Compression
         Offsets[ i ] = Parser.ReadInt64();
       Offsets[ count ] = FileHandle.Length;
 
-      AllocateMemory( count );
+      if ( _isCompressed )
+        AllocateMemory( count );
     }
 
     private void ValidateStream()
@@ -265,7 +253,6 @@ namespace Saber3D.Compression
       if ( !Parser.BaseStream.CanSeek )
         throw new InvalidOperationException();
     }
-
   }
 
 }
