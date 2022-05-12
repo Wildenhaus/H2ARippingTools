@@ -22,13 +22,15 @@ namespace H2ARipper
 
       result.WithNotParsed( err => DisplayHelp( result, err ) );
 
-      return result.MapResult(
+      var exitCode = result.MapResult(
         ( ConvertCommandOptions opts ) => new ConvertCommand().Execute( opts ),
         ( ExtractCommandOptions opts ) => new ExtractCommand().Execute( opts ),
         ( ListCommandOptions opts ) => new ListCommand().Execute( opts ),
         errors => 1
       );
 
+      Console.WriteLine();
+      return exitCode;
     }
 
     private static void PrintHeader()

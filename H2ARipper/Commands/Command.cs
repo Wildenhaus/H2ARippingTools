@@ -104,12 +104,14 @@ namespace H2ARipper.Commands
     {
       Console.ForegroundColor = color;
       Console.Write( message );
+      Console.ForegroundColor = ConsoleColor.White;
     }
 
     protected void LogLine( string message, ConsoleColor color = ConsoleColor.White )
     {
       Console.ForegroundColor = color;
       Console.WriteLine( message );
+      Console.ForegroundColor = ConsoleColor.White;
     }
 
   }
