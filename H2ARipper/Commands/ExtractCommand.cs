@@ -35,7 +35,7 @@ namespace H2ARipper.Commands
       EnsureDirectoryExists( ref destDirPath );
 
       var pck = GetPckFile( options.FilePath );
-      var results = GetPckFiles( pck, options.Filters );
+      var results = GetPckFileNames( pck, options.Filters );
 
       if ( !results.Any() )
       {

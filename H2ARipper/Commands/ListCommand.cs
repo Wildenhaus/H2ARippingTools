@@ -26,7 +26,7 @@ namespace H2ARipper.Commands
     public override int Execute( ListCommandOptions options )
     {
       var pck = GetPckFile( options.FilePath );
-      var results = GetPckFiles( pck, options.Filters );
+      var results = GetPckFileNames( pck, options.Filters );
       PrintResults( results, options );
 
       Console.WriteLine();

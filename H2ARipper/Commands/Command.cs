@@ -38,6 +38,30 @@ namespace H2ARipper.Commands
         throw new FileNotFoundException( "File does not exist.", filePath );
     }
 
+    protected bool IsPathFile( string path )
+      => !IsPathDirectory( path );
+
+    protected bool IsPathDirectory( string path )
+    {
+      if ( path == null )
+        throw new ArgumentNullException( "path" );
+      path = path.Trim();
+
+      if ( Directory.Exists( path ) )
+        return true;
+
+      if ( File.Exists( path ) )
+        return false;
+
+      if ( new[] { "\\", "/" }.Any( x => path.EndsWith( x ) ) )
+        return true;
+
+      return string.IsNullOrWhiteSpace( Path.GetExtension( path ) );
+    }
+
+    protected bool IsPckFile( string filePath )
+      => Path.GetExtension( filePath ).Equals( ".pck", StringComparison.InvariantCultureIgnoreCase );
+
     protected Pck GetPckFile( string filePath )
     {
       EnsureFileExists( ref filePath );
@@ -46,7 +70,7 @@ namespace H2ARipper.Commands
       return new Pck( decompressionStream );
     }
 
-    protected IEnumerable<string> GetPckFiles( Pck pck, IEnumerable<string> filters = null )
+    protected IEnumerable<string> GetPckFileNames( Pck pck, IEnumerable<string> filters = null )
     {
       foreach ( var fileName in pck.GetNames() )
       {
