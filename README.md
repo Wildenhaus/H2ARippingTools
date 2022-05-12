@@ -24,9 +24,9 @@ Your mileage may vary
 # Usage
 Filters are delimited by '|', no wildcards. Ex: plasma|.tpl
 
-  H2ARipper.exe list PATH_TO_PCK --filter FILTERS_GO_HERE
-  H2ARipper.exe extract PATH_TO_PCK OUTPUT_PATH --filter FILTERS_GO_HERE
-  H2ARipper.exe convert PATH_TO_PCK --outpath OUTPUT_PATH --filter FILTERS_GO_HERE
+    H2ARipper.exe list PATH_TO_PCK --filter FILTERS_GO_HERE
+    H2ARipper.exe extract PATH_TO_PCK OUTPUT_PATH --filter FILTERS_GO_HERE
+    H2ARipper.exe convert PATH_TO_PCK --outpath OUTPUT_PATH --filter FILTERS_GO_HERE
 
 #
 
