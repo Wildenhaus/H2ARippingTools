@@ -1,116 +1,52 @@
-﻿using CliWrap;
-using H2ARipper;
-using H2ARipper.Converters;
-using LibH2A.Saber3D;
+﻿using CommandLine;
+using CommandLine.Text;
+using H2ARipper.Commands;
 
-const string IN_PATH = @"G:\Steam\steamapps\common\Halo The Master Chief Collection\halo2\";
-const string OUT_PATH = @"G:\h2a\d\";
-
-//DecompressAll();
-//await ExtractAll();
-//ConvertAllTextures();
-//ReadTpl( @"G:\h2a\d\shared\_database_\banshee__h.tpl" );
-//ReadTpl( @"G:\h2a\d\shared\_database_\dervish__h.tpl" );
-//ReadTpl( @"G:\h2a\d\shared\_database_\mortar__h.tpl" );
-//ReadTpl( @"G:\h2a\d\01b_spacestation\_scene_\tpl\sm_geom_00008.tpl" );
-ReadAllTpls();// NoCatch();
-//ExportTpl( @"G:\h2a\d\shared\_database_\dervish__h.tpl" );
-
-
-void DecompressAll()
+namespace H2ARipper
 {
-  var pckFiles = Directory.GetFiles( IN_PATH, "*.pck", SearchOption.AllDirectories );
-  foreach ( var pckFile in pckFiles )
+
+  public class App
   {
-    var outPath = Path.Combine( OUT_PATH, $"{Path.GetFileNameWithoutExtension( pckFile )}.pck" );
-    Decompress( pckFile, outPath );
-  }
-}
 
-void Decompress( string inPath, string outPath )
-{
-  using ( var us = File.Create( outPath ) )
-  {
-    PckDecompresser.DecompressPck( File.OpenRead( inPath ), us );
-    us.Flush();
-  }
-}
-
-async Task ExtractAll()
-{
-  var pckFiles = Directory.GetFiles( OUT_PATH, "*.pck", SearchOption.AllDirectories );
-  foreach ( var pckFile in pckFiles )
-    await Extract( pckFile );
-}
-
-async Task Extract( string pckFile )
-{
-  bool isShared = pckFile.Contains( "shared.pck" );
-  var args = pckFile;
-  if ( isShared )
-    args += $" -s";
-
-  await Cli.Wrap( @".\Binaries\unpck.exe" )
-    .WithArguments( args )
-    .WithWorkingDirectory( Path.GetDirectoryName( pckFile ) )
-    .ExecuteAsync();
-}
-
-void ConvertAllTextures()
-{
-  var pctFiles = Directory.EnumerateFiles( OUT_PATH, "*.pct", SearchOption.AllDirectories );
-
-  Parallel.ForEach( pctFiles,
-    new ParallelOptions { MaxDegreeOfParallelism = 30 },
-    pctFile =>
-  {
-    try
+    public static int Main( string[] args )
     {
-      PctToDdsConverter.Convert( pctFile );
-    }
-    catch ( Exception ex )
-    {
-      Console.WriteLine( "{0} - {1}", ex.Message, pctFile );
-    }
-  } );
-}
+      PrintHeader();
 
-void ReadTpl( string path )
-{
-  var tpl = S3D_Template.Open( File.OpenRead( path ) );
-}
+      var result = Parser.Default
+        .ParseArguments<
+          ConvertCommandOptions,
+          ExtractCommandOptions,
+          ListCommandOptions>( args );
 
-void ReadAllTpls()
-{
-  var count = 0;
-  var success = 0;
-  foreach ( var tplFile in Directory.EnumerateFiles( OUT_PATH, "*.tpl", SearchOption.AllDirectories ) )
-  {
-    Console.Title = $"{success} of {count} successful";
-    try
-    {
-      count++;
-      ReadTpl( tplFile );
-      success++;
+      HelpText.AutoBuild( result, help =>
+      {
+        help.AdditionalNewLineAfterOption = false;
+        help.Heading = null;
+        help.Copyright = null;
+        return help;
+      }, error =>
+      {
+        return error;
+      } );
+
+      return result.MapResult(
+        ( ConvertCommandOptions opts ) => new ConvertCommand().Execute( opts ),
+        ( ExtractCommandOptions opts ) => new ExtractCommand().Execute( opts ),
+        ( ListCommandOptions opts ) => new ListCommand().Execute( opts ),
+        errors => 1
+      );
+
     }
-    catch ( Exception ex )
+
+    private static void PrintHeader()
     {
-      Console.WriteLine( "Failed to read {0}: {1}", tplFile, ex.Message );
+      Console.ForegroundColor = ConsoleColor.Cyan;
+      Console.WriteLine( "H2ARipper v0.1a" );
+      Console.ForegroundColor = ConsoleColor.White;
+      Console.WriteLine( " by Haus, Zatarita, Unordinal, sleepyzay, et. al." );
+      Console.WriteLine();
     }
+
   }
-}
 
-void ReadAllTplsNoCatch()
-{
-  var count = 0;
-  var success = 0;
-  foreach ( var tplFile in Directory.EnumerateFiles( OUT_PATH, "*.tpl", SearchOption.AllDirectories ) )
-  {
-    ReadTpl( tplFile );
-  }
-}
-
-void ExportTpl( string file )
-{
-  TplToFbxConverter.Convert( file, @"F:\dervish.fbx" );
 }
