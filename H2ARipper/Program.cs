@@ -21,8 +21,8 @@ namespace H2ARipper
       HelpText.AutoBuild( result, help =>
       {
         help.AdditionalNewLineAfterOption = false;
-        help.Heading = null;
-        help.Copyright = null;
+        help.Heading = "";
+        help.Copyright = "";
         return help;
       }, error =>
       {
