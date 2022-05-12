@@ -78,7 +78,7 @@ namespace H2ARipper.Commands
 
           WriteStreamToFile( result.ConvertedStream, outFilePath );
           LogLine( "DONE", ConsoleColor.Green );
-          LogLine( $"  Written to {outFilePath}" );
+          LogLine( $"  Written to {outFilePath}", ConsoleColor.Yellow );
         }
         catch ( Exception ex )
         {
@@ -108,7 +108,7 @@ namespace H2ARipper.Commands
 
         WriteStreamToFile( result.ConvertedStream, outFilePath );
         LogLine( "DONE", ConsoleColor.Green );
-        LogLine( $"  Written to {outFilePath}" );
+        LogLine( $"  Written to {outFilePath}", ConsoleColor.Yellow );
       }
       catch ( Exception ex )
       {
