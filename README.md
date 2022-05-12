@@ -17,6 +17,7 @@ Help/Research:
    * ✖️ Vertex Normals
    * ✖️ Bones/Skinning
    * ✖️ Materials
+ * ✖️ Level Geometry
  
 Your mileage may vary
 
