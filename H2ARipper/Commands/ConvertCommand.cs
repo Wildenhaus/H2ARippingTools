@@ -78,11 +78,12 @@ namespace H2ARipper.Commands
 
           WriteStreamToFile( result.ConvertedStream, outFilePath );
           LogLine( "DONE", ConsoleColor.Green );
+          LogLine( $"  Written to {outFilePath}" );
         }
         catch ( Exception ex )
         {
           LogLine( "FAILED", ConsoleColor.Red );
-          LogLine( $"\tReason: {ex.Message}", ConsoleColor.Red );
+          LogLine( $"  Reason: {ex.Message}", ConsoleColor.Red );
         }
       }
     }
@@ -106,11 +107,13 @@ namespace H2ARipper.Commands
           throw new Exception( result.Message );
 
         WriteStreamToFile( result.ConvertedStream, outFilePath );
+        LogLine( "DONE", ConsoleColor.Green );
+        LogLine( $"  Written to {outFilePath}" );
       }
       catch ( Exception ex )
       {
         LogLine( "FAILED", ConsoleColor.Red );
-        LogLine( $"\tReason: {ex.Message}", ConsoleColor.Red );
+        LogLine( $"  Reason: {ex.Message}", ConsoleColor.Red );
       }
     }
 
@@ -139,7 +142,7 @@ namespace H2ARipper.Commands
       catch ( Aspose.ThreeD.ExportException exportEx )
       {
         var message = "The FBX library we're currently using is a trial and is limited to 50 exports.\n" +
-                      "\tRe-run the program. It will pick up where it left off.";
+                      "  Re-run the program. It will pick up where it left off.";
         return ConversionResult.Abort( message );
       }
       catch ( Exception ex )

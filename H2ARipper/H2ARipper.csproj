@@ -6,7 +6,10 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Platforms>AnyCPU;x64</Platforms>
-    <Company>Haus, Zatarita, Unordinal, sleepyzay, et. al.</Company>
+    <Company></Company>
+    <Product></Product>
+    <Authors></Authors>
+    <Version></Version>
   </PropertyGroup>
 
   <ItemGroup>

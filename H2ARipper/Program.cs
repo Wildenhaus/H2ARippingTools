@@ -12,22 +12,15 @@ namespace H2ARipper
     {
       PrintHeader();
 
-      var result = Parser.Default
+      var parser = new CommandLine.Parser( with => with.HelpWriter = null );
+
+      var result = parser
         .ParseArguments<
           ConvertCommandOptions,
           ExtractCommandOptions,
           ListCommandOptions>( args );
 
-      HelpText.AutoBuild( result, help =>
-      {
-        help.AdditionalNewLineAfterOption = false;
-        help.Heading = "";
-        help.Copyright = "";
-        return help;
-      }, error =>
-      {
-        return error;
-      } );
+      result.WithNotParsed( err => DisplayHelp( result, err ) );
 
       return result.MapResult(
         ( ConvertCommandOptions opts ) => new ConvertCommand().Execute( opts ),
@@ -45,6 +38,20 @@ namespace H2ARipper
       Console.ForegroundColor = ConsoleColor.White;
       Console.WriteLine( " by Haus, Zatarita, Unordinal, sleepyzay, et. al." );
       Console.WriteLine();
+    }
+
+    private static void DisplayHelp( ParserResult<object> result, IEnumerable<Error> errors )
+    {
+      var helpText = HelpText.AutoBuild( result, h =>
+      {
+        h.AdditionalNewLineAfterOption = false;
+        return HelpText.DefaultParsingErrorsHandler( result, h );
+      }, e => e );
+
+      // Skip Copyright
+      var lines = helpText.ToString().Split( "\n" );
+      foreach ( var line in lines.Skip( 3 ) )
+        Console.WriteLine( line );
     }
 
   }

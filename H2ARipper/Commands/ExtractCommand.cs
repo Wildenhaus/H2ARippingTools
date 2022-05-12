@@ -78,7 +78,7 @@ namespace H2ARipper.Commands
       catch ( Exception ex )
       {
         LogLine( "FAILED", ConsoleColor.Red );
-        LogLine( $"\tReason: {ex.Message}", ConsoleColor.Red );
+        LogLine( $"  Reason: {ex.Message}", ConsoleColor.Red );
         return false;
       }
     }
