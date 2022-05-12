@@ -12,11 +12,7 @@ namespace H2ARipper.Converters
   {
     // TODO: don't use Aspose.3D for release.
     // It's a trial version and will fail after 50 models.
-
-    public static void Convert( string inFile, string outFile )
-      => Convert( File.OpenRead( inFile ), outFile );
-
-    public static void Convert( Stream stream, string outFile )
+    public static Stream Convert( Stream stream )
     {
       var tplFile = S3D_Template.Open( stream );
       stream = tplFile.Stream;
@@ -31,7 +27,11 @@ namespace H2ARipper.Converters
       //foreach ( var submesh in geometry.Data.SubMeshes )
       //  AddSubMesh( scene.RootNode, submesh, reader );
 
-      scene.Save( File.Create( outFile ), FileFormat.FBX7700Binary );
+      var outStream = new MemoryStream();
+      scene.Save( outStream, FileFormat.FBX7700Binary );
+
+      outStream.Seek( 0, SeekOrigin.Begin );
+      return outStream;
     }
 
     private static void AddMesh( Scene scene, S3D_Mesh mesh, EndianBinaryReader reader )
@@ -71,6 +71,9 @@ namespace H2ARipper.Converters
           {
             var subBufferOffset = submeshBufferInfo.FaceOffset * buffer.ElementSize;
             reader.Seek( startOffset + subBufferOffset, SeekOrigin.Begin );
+
+            if ( submeshBufferInfo.FaceCount == 0 )
+              continue;
 
             // Load Faces
             var faces = new List<short[]>();
