@@ -58,8 +58,11 @@ namespace H2ARipper.Commands
           return;
 
         var outFilePath = Path.Combine( outPath, SanitizeFileName( targetFile ) );
+        outFilePath = Path.ChangeExtension( outFilePath, "fbx" );
+
         if ( File.Exists( outFilePath ) )
           continue;
+
 
         try
         {
@@ -97,6 +100,8 @@ namespace H2ARipper.Commands
       var outFilePath = outPath;
       if ( !IsPathFile( outFilePath ) )
         outFilePath = Path.Combine( outFilePath, Path.GetFileName( inPath ) );
+
+      outFilePath = Path.ChangeExtension( outFilePath, "fbx" );
 
       try
       {
