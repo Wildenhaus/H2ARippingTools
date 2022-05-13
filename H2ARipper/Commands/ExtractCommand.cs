@@ -32,14 +32,20 @@ namespace H2ARipper.Commands
     public override int Execute( ExtractCommandOptions options )
     {
       var destDirPath = options.DestinationPath;
-      EnsureDirectoryExists( ref destDirPath );
 
-      var pck = GetPckFile( options.FilePath );
+      var pck     = GetPckFile( options.FilePath );
+
+      if ( pck.getScn() is var scene && scene.Count > 0 )
+      {
+        LogLine( $"Decompressing Scene {scene[0]}...", ConsoleColor.Yellow );
+        pck = new Pck( new MemoryStream( pck.GetData( scene[ 0 ] ) ) );
+      }
+
       var results = GetPckFileNames( pck, options.Filters );
 
       if ( !results.Any() )
       {
-        Console.WriteLine( "Nothing to extract." );
+        LogLine( "Nothing to extract.", ConsoleColor.Red );
         return 0;
       }
 
@@ -53,26 +59,32 @@ namespace H2ARipper.Commands
           successful++;
       }
 
-      LogLine( $"{successful}/{count} files successfully extracted." );
+      LogLine( $"{successful}/{count} files successfully extracted.", ConsoleColor.Green );
 
       return 0;
     }
 
     private bool ExtractFile( Pck pck, string fileName, string destDirPath )
     {
-      var destPath = Path.Combine( destDirPath, SanitizeFileName( fileName ) );
+      var outFileName = fileName.Replace( "<", "" ).Replace( ">", "" );
+
+      var destPath = Path.Combine( destDirPath, outFileName );
+
+      Directory.CreateDirectory( Path.GetDirectoryName( destPath ) );
 
       try
       {
-        Log( $"Extracting {fileName}..." );
         var fileData = pck.GetData( fileName );
+        if ( fileData.Length == 0 )
+          return true;
+
+        LogLine( $"Extracting {fileName}...", ConsoleColor.Cyan );
         using ( var outStream = File.Create( destPath ) )
         {
           outStream.Write( fileData );
           outStream.Flush();
         }
 
-        LogLine( "DONE", ConsoleColor.Green );
         return true;
       }
       catch ( Exception ex )

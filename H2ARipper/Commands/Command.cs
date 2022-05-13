@@ -94,6 +94,7 @@ namespace H2ARipper.Commands
       if ( fileName.Contains( ':' ) )
         fileName = fileName.Split( ':' ).Last();
 
+
       // Some paths are fully qualified
       fileName = Path.GetFileName( fileName );
 

@@ -102,7 +102,7 @@
       List<string> ret = new List<string>();
 
       foreach ( var name in names )
-        if ( name.ToLower().Contains( $".{ext}" ) )
+        if ( name.ToLower().EndsWith( $".{ext}" ) )
           ret.Add( name );
 
       return ret;
