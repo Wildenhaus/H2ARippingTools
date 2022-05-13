@@ -102,8 +102,8 @@ namespace Saber3D.FileTypes
 
         private void ReadDimensions(in BinaryReader stream)
         {
-            Width  = stream.ReadInt32();
             Height = stream.ReadInt32();
+            Width  = stream.ReadInt32();
             Depth  = stream.ReadInt32();
             Faces  = stream.ReadInt32();
         }
