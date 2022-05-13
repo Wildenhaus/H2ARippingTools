@@ -13,7 +13,7 @@ namespace H2ARipper
     public static int Main( string[] args )
     {
       // Usage
-
+      // File wont be found on your system
       var stream = File.OpenRead( "F:\\System Backup\\Halo Modding\\Halo Research\\Halo 2 - Aniversary\\uncompressed\\shared\\_textures_\\02_m20_rock_smgrp_moraine_a.pct" );
       var pack   = new Pct(stream);
 
