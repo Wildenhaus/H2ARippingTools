@@ -1,6 +1,14 @@
 ﻿using CommandLine;
 using Saber3D.FileTypes;
 
+// Edit: 5/13 - Zatarita
+//   Changes:
+//     Fixed directory structure.
+//        Now creates directories if they dont exist
+//        Now mimics internal file structure in pck
+//      Pck file now checks in scn instead for level pcks.
+//      Added overwrite flag & now checks if file exists before re-extracting without overwrite flag
+
 namespace H2ARipper.Commands
 {
 
@@ -23,6 +31,9 @@ namespace H2ARipper.Commands
       Required = false,
       HelpText = "Filter by patterns, delimited by '|'. Wildcard not supported." )]
     public IEnumerable<string> Filters { get; set; }
+
+    [Option( shortName: 'w', longName: "overwrite", HelpText = "Overwrite existing files." )]
+    public bool Overwrite { get; set; }
 
   }
 
@@ -54,7 +65,7 @@ namespace H2ARipper.Commands
       foreach ( var result in results )
       {
         count++;
-        var success = ExtractFile( pck, result, destDirPath );
+        var success = ExtractFile( pck, result, destDirPath, options.Overwrite );
         if ( success )
           successful++;
       }
@@ -64,11 +75,14 @@ namespace H2ARipper.Commands
       return 0;
     }
 
-    private bool ExtractFile( Pck pck, string fileName, string destDirPath )
+    private bool ExtractFile( Pck pck, string fileName, string destDirPath, bool overwrite = false )
     {
       var outFileName = fileName.Replace( "<", "" ).Replace( ">", "" ).Replace(":", "\\");
 
       var destPath = Path.Combine( destDirPath, outFileName );
+
+      if ( File.Exists( destPath ) && !overwrite )
+        return false;
 
       Directory.CreateDirectory( Path.GetDirectoryName( destPath ) );
 

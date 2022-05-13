@@ -1,22 +1,19 @@
-﻿namespace Saber3D.FileTypes
-{
+﻿// Edit: 5/13 - Zatarita
+//   Changes:
+//     Created the class
+//     Removed caching data over memory paging issues
+//   Todo:
+//      MEMORY MANAGEMENT
 
+
+namespace Saber3D.FileTypes
+{
   public class SERPak
   {
-
     public class PckEntry
     {
       public long Offset { get; set; }
-      public long Size
-      {
-        get { return _data is null ? 0 : _data.Length; }
-        set { _data = new byte[ value ]; }
-      }
-      public bool HasData { get { return _data is null; } }
-
-      // Data gets set when size gets set.
-      private byte[]? _data;
-      private bool _initialized = false;
+      public long Size { get; set; }
 
       public PckEntry( long offset, long size )
       {
@@ -27,21 +24,12 @@
       // Loads the data into memory if it hasn't already, then returns the data.
       public byte[] Data( in BinaryReader stream )
       {
-        // If we haven't initialized the size property we have nothing to load
-        if ( HasData )
-          throw new ArgumentNullException();
+        var data = new byte[ Size ];
 
-        // If we haven't previously loaded the data
-        if ( !_initialized )
-        {
-          // Seek and read
-          stream.BaseStream.Seek( Offset, SeekOrigin.Begin );
-          stream.Read( _data, 0, ( int ) Size );
-          _initialized = true;
-        }
+        stream.BaseStream.Seek( Offset, SeekOrigin.Begin );
+        stream.Read( data, 0, ( int ) Size );
 
-        // Dont listen to the warning it checks HasData at the beginning.
-        return _data;
+        return data;
       }
     }
 
@@ -76,6 +64,7 @@
       return names;
     }
 
+    // These be the three important ones really
     public List<string> getTpls()
     {
       return GetExtension( "tpl" );
@@ -90,12 +79,7 @@
       return GetExtension( "scn" );
     }
 
-    public void Preload()
-    {
-      foreach(var (name, entry) in _entries)
-        GetData( name );
-    }
-
+    // Generalized
     public List<string> GetExtension( in string ext )
     {
       List<string> names = GetNames();

@@ -3,6 +3,17 @@ using H2ARipper.Converters;
 using LibH2A.Saber3D;
 using Saber3D.FileTypes;
 
+// Edit: 05/13 - Zatarita
+//   Changes:
+//     Added directory command to parse files in directory
+//     Added short names to commands
+//     Make scene Pcks load from the Scn instead of the global pck scope
+//     Added pct support
+//     Fixed directory structure.
+//        Now creates directories if they dont exist
+//        Now mimics internal file structure in pck
+//     Added an overwrite flag to overwrite existing tags
+
 namespace H2ARipper.Commands
 {
 
@@ -15,16 +26,19 @@ namespace H2ARipper.Commands
       HelpText = "The file to convert" )]
     public string InPath { get; set; }
 
-    [Option( "outpath",
+    [Option( shortName: 'o', longName: "outpath",
       HelpText = "The output path. If not specified, it will be placed in the current directory." )]
     public string OutPath { get; set; }
 
-    [Option( "filter",
+    [Option( shortName: 'f', longName: "filter",
       HelpText = "Filter files to convert. Delimited by '|'. Only used when converting .pck files." )]
     public IEnumerable<string> Filters { get; set; }
 
-    [Option( shortName: 'd', longName: "directory", HelpText = "Recursively convert the files in a directory. Path is a directory" )]
+    [Option( shortName: 'd', longName: "directory", HelpText = "Convert the files in a directory." )]
     public bool Recursive { get; set; }
+
+    [Option( shortName: 'w', longName: "overwrite", HelpText = "Overwrite existing files." )]
+    public bool Overwrite { get; set; }
 
   }
 
@@ -34,7 +48,7 @@ namespace H2ARipper.Commands
     public override int Execute( ConvertCommandOptions options )
     {
 
-      Console.WriteLine( options.OutPath );
+      LogLine( $"Converting:\t{options.InPath}\nTo:\t\t{options.OutPath}", ConsoleColor.Yellow );
       if(options.Recursive)
         AsyncParseDirectory(options);
       else
@@ -45,7 +59,6 @@ namespace H2ARipper.Commands
 
     private void DoExecute( ConvertCommandOptions options )
     {
-
       var inPath = options.InPath;
 
       if ( string.IsNullOrWhiteSpace( inPath ) )
@@ -59,7 +72,7 @@ namespace H2ARipper.Commands
       else if ( !IsPathFile( outPath ) )
         EnsureDirectoryExists( ref outPath );
 
-      DelegateCommand( options.InPath, outPath, options.Filters );
+      DelegateCommand( options.InPath, outPath, options );
     }
 
     private void AsyncParseDirectory( ConvertCommandOptions options )
@@ -78,33 +91,31 @@ namespace H2ARipper.Commands
       Parallel.For( 0, files.Length,
                     index => {
                       if ( Path.GetExtension( files[ index ] ) is var ext && ext == ".pct" || ext == ".pck" )
-                        DelegateCommand( files[ index ], outPath, options.Filters );
+                        DelegateCommand( files[ index ], outPath, options );
                    } );
 
     }
 
-    private void DelegateCommand( in string inPath, in string outPath, in IEnumerable<string> filters )
+    private void DelegateCommand( in string inPath, in string outPath, in ConvertCommandOptions options )
     {
       if ( IsPckFile( inPath ) )
-        ConvertFromPckFile( GetPckFile(inPath), outPath + "\\" + Path.GetFileNameWithoutExtension(inPath), filters );
+        ConvertFromPckFile( GetPckFile(inPath), outPath + "\\" + Path.GetFileNameWithoutExtension(inPath), options );
       else
         ConvertRawFile( inPath, outPath );
     }
 
-    private void ConvertFromPckFile( in Pck pck, string outPath, IEnumerable<string> filters )
+    private void ConvertFromPckFile( in Pck pck, string outPath, in ConvertCommandOptions options)
     {
       var abort = false;
       //var pck = GetPckFile( inPath );
-      var targetFiles = GetPckFileNames( pck, filters );
+      var targetFiles = GetPckFileNames( pck, options.Filters );
 
-      foreach ( var targetFile in targetFiles )
+      foreach(var targetFile in targetFiles)
       {
-        if ( abort )
-          return;
-
-        if (!Directory.Exists(outPath))
-          Directory.CreateDirectory(outPath);
-        var outFilePath = Path.Combine( outPath, SanitizeFileName( targetFile ) );
+        if ( !Directory.Exists( outPath ) )
+          Directory.CreateDirectory( outPath );
+        var outFileName = targetFile.Replace( "<", "" ).Replace( ">", "" ).Replace( ":", "\\" );
+        var outFilePath = Path.Combine( outPath, outFileName );
 
         if ( Path.HasExtension( outFilePath ) && Path.GetExtension( outFilePath ) == ".tpl" )
           outFilePath = Path.ChangeExtension( outFilePath, "fbx" );
@@ -113,25 +124,27 @@ namespace H2ARipper.Commands
         else if ( Path.GetExtension( outFilePath ) != ".scn" )
           continue;
 
-        if ( File.Exists( outFilePath ) )
+        if ( File.Exists( outFilePath ) && !options.Overwrite )
+        {
+          LogLine( $"Skipping Existing: {targetFile}...", ConsoleColor.Yellow );
           continue;
-
+        }
 
         try
         {
-          if ( targetFile.EndsWith(".scn") )
+          if ( targetFile.EndsWith( ".scn" ) )
             LogLine( $"Decompressing Scene {targetFile}...", ConsoleColor.Cyan );
 
           var data = pck.GetData( targetFile );
           if ( data.Length == 0 )
             continue;
 
-          if ( targetFile.EndsWith(".scn") )
+          if ( targetFile.EndsWith( ".scn" ) )
           {
             var scnData = new MemoryStream( data );
             var stream = new Pck( scnData );
             LogLine( $"Converting Scene {targetFile}...", ConsoleColor.Cyan );
-            ConvertFromPckFile(stream , outPath, filters );
+            ConvertFromPckFile( stream, outPath, options );
             continue;
           }
 
@@ -147,11 +160,10 @@ namespace H2ARipper.Commands
         }
         catch ( Exception ex )
         {
-          LogLine( "FAILED", ConsoleColor.Red );
+          LogLine( $"FAILED: {outFilePath}", ConsoleColor.Red );
           LogLine( $"  Reason: {ex.Message}", ConsoleColor.Red );
         }
       }
-      LogLine( "DONE", ConsoleColor.Green );
     }
 
     private void ConvertRawFile( string inPath, string outPath )

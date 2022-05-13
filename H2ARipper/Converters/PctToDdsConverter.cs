@@ -1,15 +1,20 @@
 ﻿// Research done by Zatarita
 // https://opencarnage.net/index.php?/topic/8385-textures-s3dpak-format-spec/
-
-/*using CliWrap;
-using DirectXTexNet;
-using System.IO;*/
-
-using DirectXTexNet;
+//
+// Edit: 5/13 - Zatarita
+//  Changes:
+//    Refactored entire converter class to move away from rawtex
+//    Renamed PctToDDS -> SaveAsDDS as it more aptly names what it does
+//    Renamed GetImage -> PctToDDS  as it more aptly names what it does.
+//      Exposed PctToDDS for easy converting inside reclaimer IBitmap.ToDds function
+//    Moved A16R16G16B16_f into the dx10 header
+//    Moved AI88 to R8G8 as it is the closest format we can use
+//  TODO:
+//    Rigerous testing.
+//    MEMORY MANAGEMENT. <-------
 
 using Saber3D.FileTypes;
 using System.Drawing.Dds;
-using System.IO;
 
 namespace H2ARipper.Converters
 {
@@ -19,29 +24,26 @@ namespace H2ARipper.Converters
         // This uses System.Drawing.Dds library created by GraveMind2401 https://github.com/Gravemind2401/System.Drawing.Dds
         public static Stream ConvertToStream( in Pct pct )
         {
-            var image = GetImage( pct );
+            var image = PctToDDS( pct );
 
             var ret = new MemoryStream();
             image.WriteToStream(ret);
 
             return ret;
         }
-    
-    
-        public static void PctToDDS(in Pct pct, in string outpath)
+        public static void SaveAsDDS(in Pct pct, in string outpath)
         {
-            var image = GetImage(pct);
+            var image = PctToDDS(pct);
             WriteDDS(image, outpath);
         }
 
-        private static DdsImage GetImage(in Pct pct)
+        public static DdsImage PctToDDS(in Pct pct)
         {
             DdsImage image;
             switch(pct.DdsFormat)
             {
                 // non-dx 10
                 case Pct.Format.DXN:
-                case Pct.Format.A16B16G16R16_F:
                 case Pct.Format.DXT5A:
                 case Pct.Format.DXT5:
                 case Pct.Format.DXT3:
@@ -50,6 +52,8 @@ namespace H2ARipper.Converters
                     image = GenerateDDS(pct);
                     break;
                 // dx-10
+                case Pct.Format.A16B16G16R16_F:
+                case Pct.Format.AI88:
                 case Pct.Format.R9G9B9E5_SHAREDEXP:
                 case Pct.Format.A8R8G8B8:
                 case Pct.Format.X8R8G8B8:
@@ -80,12 +84,16 @@ namespace H2ARipper.Converters
         {
             switch(pct.DdsFormat)
             {
+                case Pct.Format.A16B16G16R16_F:
+                    return DxgiFormat.R16G16B16A16_Float;
                 case Pct.Format.R9G9B9E5_SHAREDEXP:
                     return DxgiFormat.R9G9B9E5_SharedExp;
                 case Pct.Format.A8R8G8B8:
                     return DxgiFormat.B8G8R8A8_UNorm;
                 case Pct.Format.X8R8G8B8:
                     return DxgiFormat.B8G8R8X8_UNorm;
+                case Pct.Format.AI88:
+                    return DxgiFormat.R8G8_UNorm;
             }
             return null;
         }
@@ -96,9 +104,6 @@ namespace H2ARipper.Converters
             {
                 case Pct.Format.DXN:
                     return FourCC.ATI2;
-
-                case Pct.Format.A16B16G16R16_F:
-                    return null;  // Special case
 
                 case Pct.Format.DXT5A:
                     return FourCC.ATI1;
@@ -112,7 +117,8 @@ namespace H2ARipper.Converters
                 case Pct.Format.OXT1:
                 case Pct.Format.AXT1:
                     return FourCC.DXT1;
-
+          
+                case Pct.Format.A16B16G16R16_F:
                 case Pct.Format.R9G9B9E5_SHAREDEXP:
                 case Pct.Format.A8R8G8B8:
                 case Pct.Format.X8R8G8B8:
