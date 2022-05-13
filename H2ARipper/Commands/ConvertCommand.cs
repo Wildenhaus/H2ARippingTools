@@ -1,6 +1,7 @@
 ﻿using CommandLine;
 using H2ARipper.Converters;
 using LibH2A.Saber3D;
+using Saber3D.FileTypes;
 
 namespace H2ARipper.Commands
 {
@@ -101,7 +102,10 @@ namespace H2ARipper.Commands
       if ( !IsPathFile( outFilePath ) )
         outFilePath = Path.Combine( outFilePath, Path.GetFileName( inPath ) );
 
-      outFilePath = Path.ChangeExtension( outFilePath, "fbx" );
+      if(Path.HasExtension( outFilePath ) && Path.GetExtension(outFilePath) == ".tpl")
+        outFilePath = Path.ChangeExtension( outFilePath, "fbx" );
+      else
+        outFilePath = Path.ChangeExtension( outFilePath, "dds" );
 
       try
       {
@@ -158,7 +162,9 @@ namespace H2ARipper.Commands
 
     private ConversionResult ConvertPctFile( Stream data )
     {
-      return ConversionResult.Failure( "PCT file support is not yet ready." );
+      var pct = new Pct( data );
+      var convertedStream = Texture.ConvertToStream( pct );
+      return ConversionResult.Success( convertedStream );
     }
 
     private void WriteStreamToFile( Stream stream, string outPath )

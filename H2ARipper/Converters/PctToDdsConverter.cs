@@ -17,7 +17,24 @@ namespace H2ARipper.Converters
     {
 
         // This uses System.Drawing.Dds library created by GraveMind2401 https://github.com/Gravemind2401/System.Drawing.Dds
+        public static Stream ConvertToStream( in Pct pct )
+        {
+            var image = GetImage( pct );
+
+            var ret = new MemoryStream();
+            image.WriteToStream(ret);
+
+            return ret;
+        }
+    
+    
         public static void PctToDDS(in Pct pct, in string outpath)
+        {
+            var image = GetImage(pct);
+            WriteDDS(image, outpath);
+        }
+
+        private static DdsImage GetImage(in Pct pct)
         {
             DdsImage image;
             switch(pct.DdsFormat)
@@ -42,7 +59,7 @@ namespace H2ARipper.Converters
                     throw new ArgumentException();
             }
 
-            WriteDDS(image, outpath);
+            return image;
         }
 
         private static DdsImage GenerateDDS( in Pct pct)
