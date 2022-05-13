@@ -23,6 +23,9 @@ namespace H2ARipper.Commands
       HelpText = "Filter files to convert. Delimited by '|'. Only used when converting .pck files." )]
     public IEnumerable<string> Filters { get; set; }
 
+    [Option( shortName: 'd', longName: "directory", HelpText = "Recursively convert the files in a directory. Path is a directory" )]
+    public bool Recursive { get; set; }
+
   }
 
   public class ConvertCommand : Command<ConvertCommandOptions>
@@ -30,7 +33,24 @@ namespace H2ARipper.Commands
 
     public override int Execute( ConvertCommandOptions options )
     {
+
+      Console.WriteLine( options.OutPath );
+      if(options.Recursive)
+        AsyncParseDirectory(options);
+      else
+        DoExecute(options);
+
+      return 0;
+    }
+
+    private void DoExecute( ConvertCommandOptions options )
+    {
+
       var inPath = options.InPath;
+
+      if ( string.IsNullOrWhiteSpace( inPath ) )
+        inPath = Environment.CurrentDirectory;
+
       EnsureFileExists( ref inPath );
 
       var outPath = options.OutPath;
@@ -39,18 +59,42 @@ namespace H2ARipper.Commands
       else if ( !IsPathFile( outPath ) )
         EnsureDirectoryExists( ref outPath );
 
-      if ( IsPckFile( options.InPath ) )
-        ConvertFromPckFile( inPath, outPath, options.Filters );
-      else
-        ConvertRawFile( inPath, outPath );
-
-      return 0;
+      DelegateCommand( options.InPath, outPath, options.Filters );
     }
 
-    private void ConvertFromPckFile( string inPath, string outPath, IEnumerable<string> filters )
+    private void AsyncParseDirectory( ConvertCommandOptions options )
+    {
+      var directory = options.InPath;
+      if ( !Directory.Exists( directory ) )
+        throw new ArgumentException("Unknown Directory Requested!");
+
+      var outPath = options.OutPath;
+      if ( string.IsNullOrWhiteSpace( outPath ) )
+        outPath = Environment.CurrentDirectory;
+      else if ( !IsPathFile( outPath ) )
+        EnsureDirectoryExists( ref outPath );
+
+      string[] files = Directory.GetFiles( directory );
+      Parallel.For( 0, files.Length,
+                    index => {
+                      if ( Path.GetExtension( files[ index ] ) is var ext && ext == ".pct" || ext == ".pck" )
+                        DelegateCommand( files[ index ], outPath, options.Filters );
+                   } );
+
+    }
+
+    private void DelegateCommand( in string inPath, in string outPath, in IEnumerable<string> filters )
+    {
+      if ( IsPckFile( inPath ) )
+        ConvertFromPckFile( GetPckFile(inPath), outPath + "\\" + Path.GetFileNameWithoutExtension(inPath), filters );
+      else
+        ConvertRawFile( inPath, outPath );
+    }
+
+    private void ConvertFromPckFile( in Pck pck, string outPath, IEnumerable<string> filters )
     {
       var abort = false;
-      var pck = GetPckFile( inPath );
+      //var pck = GetPckFile( inPath );
       var targetFiles = GetPckFileNames( pck, filters );
 
       foreach ( var targetFile in targetFiles )
@@ -58,8 +102,16 @@ namespace H2ARipper.Commands
         if ( abort )
           return;
 
+        if (!Directory.Exists(outPath))
+          Directory.CreateDirectory(outPath);
         var outFilePath = Path.Combine( outPath, SanitizeFileName( targetFile ) );
-        outFilePath = Path.ChangeExtension( outFilePath, "fbx" );
+
+        if ( Path.HasExtension( outFilePath ) && Path.GetExtension( outFilePath ) == ".tpl" )
+          outFilePath = Path.ChangeExtension( outFilePath, "fbx" );
+        else if ( Path.GetExtension( outFilePath ) == ".pct" )
+          outFilePath = Path.ChangeExtension( outFilePath, "dds" );
+        else if ( Path.GetExtension( outFilePath ) != ".scn" )
+          continue;
 
         if ( File.Exists( outFilePath ) )
           continue;
@@ -67,11 +119,21 @@ namespace H2ARipper.Commands
 
         try
         {
-          Log( $"Converting {targetFile}..." );
+          if ( targetFile.EndsWith(".scn") )
+            LogLine( $"Decompressing Scene {targetFile}...", ConsoleColor.Cyan );
 
           var data = pck.GetData( targetFile );
           if ( data.Length == 0 )
-            throw new Exception( "File contains no data." );
+            continue;
+
+          if ( targetFile.EndsWith(".scn") )
+          {
+            var scnData = new MemoryStream( data );
+            var stream = new Pck( scnData );
+            LogLine( $"Converting Scene {targetFile}...", ConsoleColor.Cyan );
+            ConvertFromPckFile(stream , outPath, filters );
+            continue;
+          }
 
           var result = ConvertFile( targetFile, new MemoryStream( data ) );
           if ( !result.Successful )
@@ -81,8 +143,7 @@ namespace H2ARipper.Commands
           }
 
           WriteStreamToFile( result.ConvertedStream, outFilePath );
-          LogLine( "DONE", ConsoleColor.Green );
-          LogLine( $"  Written to {outFilePath}", ConsoleColor.Yellow );
+          LogLine( $"Written to {outFilePath}", ConsoleColor.Cyan );
         }
         catch ( Exception ex )
         {
@@ -90,6 +151,7 @@ namespace H2ARipper.Commands
           LogLine( $"  Reason: {ex.Message}", ConsoleColor.Red );
         }
       }
+      LogLine( "DONE", ConsoleColor.Green );
     }
 
     private void ConvertRawFile( string inPath, string outPath )

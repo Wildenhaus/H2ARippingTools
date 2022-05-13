@@ -36,7 +36,7 @@
         {
           // Seek and read
           stream.BaseStream.Seek( Offset, SeekOrigin.Begin );
-          stream.BaseStream.Read( _data, ( int ) Offset, ( int ) Size );
+          stream.Read( _data, 0, ( int ) Size );
           _initialized = true;
         }
 
@@ -88,6 +88,12 @@
     public List<string> getScn()
     {
       return GetExtension( "scn" );
+    }
+
+    public void Preload()
+    {
+      foreach(var (name, entry) in _entries)
+        GetData( name );
     }
 
     public List<string> GetExtension( in string ext )
