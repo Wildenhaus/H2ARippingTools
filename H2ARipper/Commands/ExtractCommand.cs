@@ -66,7 +66,7 @@ namespace H2ARipper.Commands
 
     private bool ExtractFile( Pck pck, string fileName, string destDirPath )
     {
-      var outFileName = fileName.Replace( "<", "" ).Replace( ">", "" );
+      var outFileName = fileName.Replace( "<", "" ).Replace( ">", "" ).Replace(":", "\\");
 
       var destPath = Path.Combine( destDirPath, outFileName );
 
