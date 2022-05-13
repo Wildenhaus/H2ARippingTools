@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LibH2A\LibH2A.csproj" />
+    <ProjectReference Include="..\System.Drawing.Dds\System.Drawing.Dds.csproj" />
   </ItemGroup>
 
   <ItemGroup>

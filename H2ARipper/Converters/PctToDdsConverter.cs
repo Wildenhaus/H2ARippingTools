@@ -1,208 +1,113 @@
 ﻿// Research done by Zatarita
 // https://opencarnage.net/index.php?/topic/8385-textures-s3dpak-format-spec/
 
-using CliWrap;
+/*using CliWrap;
 using DirectXTexNet;
+using System.IO;*/
+
+using DirectXTexNet;
+
+using Saber3D.FileTypes;
+using System.Drawing.Dds;
 using System.IO;
 
 namespace H2ARipper.Converters
 {
-
-  public static class PctToDdsConverter
-  {
-
-    public static void Convert( string inFile )
+    public static class Texture
     {
-      using var fs = File.OpenRead( inFile );
-      using var reader = new BinaryReader( fs );
 
-      var header = ReadHeader( reader );
-      ConvertToDds( header, inFile );
+        // This uses System.Drawing.Dds library created by GraveMind2401 https://github.com/Gravemind2401/System.Drawing.Dds
+        public static void PctToDDS(in Pct pct, in string outpath)
+        {
+            DdsImage image;
+            switch(pct.DdsFormat)
+            {
+                // non-dx 10
+                case Pct.Format.DXN:
+                case Pct.Format.A16B16G16R16_F:
+                case Pct.Format.DXT5A:
+                case Pct.Format.DXT5:
+                case Pct.Format.DXT3:
+                case Pct.Format.OXT1:
+                case Pct.Format.AXT1:
+                    image = GenerateDDS(pct);
+                    break;
+                // dx-10
+                case Pct.Format.R9G9B9E5_SHAREDEXP:
+                case Pct.Format.A8R8G8B8:
+                case Pct.Format.X8R8G8B8:
+                    image = GenerateDDSDX10(pct);
+                    break;
+                default:
+                    throw new ArgumentException();
+            }
+
+            WriteDDS(image, outpath);
+        }
+
+        private static DdsImage GenerateDDS( in Pct pct)
+        {              
+            if( GetFourCC( pct ) is var fourCC && fourCC.HasValue)
+                return new DdsImage(pct.Width, pct.Height, fourCC.Value, pct.Pixels);
+            throw new ArgumentException();
+        }
+
+        private static DdsImage GenerateDDSDX10( in Pct pct)
+        {
+            if( GetDxgiFormat( pct ) is var format && format.HasValue)
+                return new DdsImage(pct.Width, pct.Height, format.Value, pct.Pixels);
+            throw new ArgumentException();
+        }
+
+        private static DxgiFormat? GetDxgiFormat( in Pct pct )
+        {
+            switch(pct.DdsFormat)
+            {
+                case Pct.Format.R9G9B9E5_SHAREDEXP:
+                    return DxgiFormat.R9G9B9E5_SharedExp;
+                case Pct.Format.A8R8G8B8:
+                    return DxgiFormat.B8G8R8A8_UNorm;
+                case Pct.Format.X8R8G8B8:
+                    return DxgiFormat.B8G8R8X8_UNorm;
+            }
+            return null;
+        }
+
+        private static FourCC? GetFourCC(in Pct pct)
+        { 
+            switch(pct.DdsFormat)
+            {
+                case Pct.Format.DXN:
+                    return FourCC.ATI2;
+
+                case Pct.Format.A16B16G16R16_F:
+                    return null;  // Special case
+
+                case Pct.Format.DXT5A:
+                    return FourCC.ATI1;
+
+                case Pct.Format.DXT5:
+                    return FourCC.DXT5;
+
+                case Pct.Format.DXT3:
+                    return FourCC.DXT3;
+
+                case Pct.Format.OXT1:
+                case Pct.Format.AXT1:
+                    return FourCC.DXT1;
+
+                case Pct.Format.R9G9B9E5_SHAREDEXP:
+                case Pct.Format.A8R8G8B8:
+                case Pct.Format.X8R8G8B8:
+                    return FourCC.DX10;
+            }
+            return null;
+        }
+
+        private static void WriteDDS(in DdsImage image, in string outpath)
+        {
+            var stream = File.OpenWrite(outpath);
+            image.WriteToStream(stream);
+        }
     }
-
-    public static void Convert(byte[] data, in string outFile)
-    {
-        using var bs = new MemoryStream(data);
-        using var reader = new BinaryReader(bs);
-
-        var header = ReadHeader(reader);
-        ConvertToDds(header, outFile);
-    }
-
-        private static PctHeader ReadHeader( BinaryReader reader )
-    {
-      const short SENTINEL_SIGNATURE = 0xF0;
-      const short SENTINEL_DIMENSIONS = 0x0102;
-      const short SENTINEL_FORMAT = 0xF2;
-      const short SENTINEL_MIP_COUNT = 0xF9;
-      const short SENTINEL_PIXEL_DATA = 0xFF;
-      const int PCT_HEADER = 0x50494354; // TCIP
-
-
-      var header = new PctHeader();
-
-      short sentinel;
-      int endOfBlock;
-
-      // Signature
-      sentinel = reader.ReadInt16();
-      endOfBlock = reader.ReadInt32();
-      Assert( sentinel, SENTINEL_SIGNATURE, "Invalid Signature Sentinel" );
-      Assert( reader.ReadInt32(), PCT_HEADER, "Not a PCT file" );
-      Assert( reader.BaseStream.Position, endOfBlock, "Not all Signature block data read!" );
-
-      // Dimensions
-      sentinel = reader.ReadInt16();
-      endOfBlock = reader.ReadInt32();
-      Assert( sentinel, SENTINEL_DIMENSIONS, "Invalid Dimensions Sentinel" );
-
-      header.Width = reader.ReadInt32();
-      header.Height = reader.ReadInt32();
-      header.Depth = reader.ReadInt32();
-      header.Faces = reader.ReadInt32();
-
-      Assert( reader.BaseStream.Position, endOfBlock, "Not all Dimensions block data read!" );
-
-      // Format
-      sentinel = reader.ReadInt16();
-      endOfBlock = reader.ReadInt32();
-      Assert( sentinel, SENTINEL_FORMAT, "Invalid Format Sentinel" );
-
-      header.Format = ( TextureFormat ) reader.ReadInt32();
-      AssertIsValidTextureFormat( header.Format );
-
-      Assert( reader.BaseStream.Position, endOfBlock, "Not all Format block data read!" );
-
-      // Mipmap Count
-      sentinel = reader.ReadInt16();
-      endOfBlock = reader.ReadInt32();
-      Assert( sentinel, SENTINEL_MIP_COUNT, "Invalid MIP Sentinel" );
-
-      header.MipCount = reader.ReadInt32();
-
-      Assert( reader.BaseStream.Position, endOfBlock, "Not all MIP block data read!" );
-
-      // Pixel Data
-      sentinel = reader.ReadInt16();
-      endOfBlock = reader.ReadInt32();
-      Assert( sentinel, SENTINEL_PIXEL_DATA, "Invalid Pixel Data Sentinel" );
-
-      header.PixelDataOffset = reader.BaseStream.Position;
-      header.PixelDataSize = endOfBlock - reader.BaseStream.Position;
-
-      return header;
-    }
-
-    private static void ConvertToDds( PctHeader header, string inFile )
-    {
-      if ( File.Exists( Path.ChangeExtension( inFile, "png" ) ) )
-        return;
-
-      var format = GetDxgiFormat( header.Format );
-      Console.WriteLine( "{0}>{1} - {2} - {3}", header.Format.ToString(), format.ToString(), header.Width, inFile );
-
-      var task = Cli.Wrap( @".\Binaries\RawtexCmd.exe" )
-        .WithWorkingDirectory( @".\Binaries\" )
-        .WithArguments( x => x
-          .Add( inFile )
-          .Add( ( int ) GetDxgiFormat( header.Format ) )
-          .Add( $"{header.PixelDataOffset:X}" )
-          .Add( header.Width )
-          .Add( header.Height )
-          )
-        .ExecuteAsync();
-
-      task.Task.Wait();
-    }
-
-    private static void Assert<T>( T actual, T expected, string message = null )
-      where T : unmanaged
-    {
-      if ( !Equals( actual, expected ) )
-        throw new Exception( message ?? "Invalid data detected." );
-
-    }
-
-    private static void AssertIsValidTextureFormat( TextureFormat format )
-      => Assert( TextureFormatValues.Contains( format ), true, $"Invalid texture format! ({( int ) format:X})" );
-
-    internal class PctHeader
-    {
-      // Dimensions
-      public int Width;
-      public int Height;
-      public int Depth;
-      public int Faces;
-
-      // Format
-      public TextureFormat Format;
-
-      // Mipmap Count
-      public int MipCount;
-
-      // Pixel Data
-      public long PixelDataOffset;
-      public long PixelDataSize;
-    }
-
-    static TextureFormat[] TextureFormatValues = Enum.GetValues<TextureFormat>();
-
-    internal enum TextureFormat
-    {
-      A8R8G8B8 = 0x00,
-      A8L8 = 0x0A,
-
-      OXT1 = 0x0C,
-      AXT1 = 0x0D,
-      DXT3 = 0x0F,
-      DXT5 = 0x11,
-
-      X8R8G8B8 = 0x16,
-
-      DXN = 0x24,
-      DXT5A = 0x25, // AKA ATI1
-
-      A16R16G16B16_F = 0x26, // Report to Zatarita, shared\_textures_\shore_03a_oldmombasa.pct
-      R9G9B9E6_SHAREDEXP = 0x2D // Report to Zatarita, shared\_project_\prebuild\scenes\01a_tutorial.scn\lm\01a_tutorial_tex_rnm0.pct
-    }
-
-    private static DXGI_FORMAT GetDxgiFormat( TextureFormat format )
-    {
-      switch ( format )
-      {
-        case TextureFormat.A8R8G8B8:
-          return DXGI_FORMAT.B8G8R8A8_UNORM;
-        case TextureFormat.A8L8:
-          return DXGI_FORMAT.R8G8_UNORM; // https://searchcode.com/file/71892491/Source/Toolkit/SharpDX.Toolkit.Graphics/DDSHelper.cs/
-
-        case TextureFormat.OXT1:
-          return DXGI_FORMAT.BC1_UNORM;
-        case TextureFormat.AXT1:
-          return DXGI_FORMAT.BC1_UNORM;
-        case TextureFormat.DXT3:
-          return DXGI_FORMAT.BC2_UNORM;
-        case TextureFormat.DXT5:
-          return DXGI_FORMAT.BC3_UNORM;
-
-        case TextureFormat.X8R8G8B8:
-          return DXGI_FORMAT.B8G8R8X8_UNORM;
-
-        case TextureFormat.DXN:
-          return DXGI_FORMAT.BC5_UNORM;
-        case TextureFormat.DXT5A:
-          return DXGI_FORMAT.BC4_UNORM;
-
-        case TextureFormat.A16R16G16B16_F:
-          return DXGI_FORMAT.R16G16B16A16_FLOAT;
-        case TextureFormat.R9G9B9E6_SHAREDEXP:
-          return DXGI_FORMAT.R9G9B9E5_SHAREDEXP;
-
-        default:
-          throw new Exception( $"Could not convert DXGI Format {format}" );
-
-      }
-    }
-
-  }
-
 }

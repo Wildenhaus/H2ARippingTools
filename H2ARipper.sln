@@ -4,10 +4,15 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "H2ARipper", "H2ARipper\H2ARipper.csproj", "{179F5648-3B55-4D93-AB98-D8AE5503EADA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A} = {A31A58A8-2BC6-43AF-AD81-692B2E37F01A}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibH2A", "LibH2A\LibH2A.csproj", "{D14E06AB-E761-48B8-9E1E-405E4051077B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LibH2A.Tests", "LibH2A.Tests\LibH2A.Tests.csproj", "{E0B69B9E-B3C7-402A-82AF-B5A91FB8D79B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "System.Drawing.Dds", "System.Drawing.Dds\System.Drawing.Dds.csproj", "{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +46,14 @@ Global
 		{E0B69B9E-B3C7-402A-82AF-B5A91FB8D79B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E0B69B9E-B3C7-402A-82AF-B5A91FB8D79B}.Release|x64.ActiveCfg = Release|x64
 		{E0B69B9E-B3C7-402A-82AF-B5A91FB8D79B}.Release|x64.Build.0 = Release|x64
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}.Debug|x64.Build.0 = Debug|Any CPU
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}.Release|x64.ActiveCfg = Release|Any CPU
+		{A31A58A8-2BC6-43AF-AD81-692B2E37F01A}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

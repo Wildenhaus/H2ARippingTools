@@ -1,6 +1,8 @@
 ﻿using CommandLine;
 using CommandLine.Text;
 using H2ARipper.Commands;
+using Saber3D.FileTypes;
+using H2ARipper.Converters;
 
 namespace H2ARipper
 {
@@ -10,6 +12,15 @@ namespace H2ARipper
 
     public static int Main( string[] args )
     {
+      // Usage
+
+      var stream = File.OpenRead( "F:\\System Backup\\Halo Modding\\Halo Research\\Halo 2 - Aniversary\\uncompressed\\shared\\_textures_\\02_m20_rock_smgrp_moraine_a.pct" );
+      var pack   = new Pct(stream);
+
+      Texture.PctToDDS( pack, "test.dds" );
+
+      return 0;
+
       PrintHeader();
 
       var parser = new CommandLine.Parser( with => with.HelpWriter = null );
