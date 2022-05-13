@@ -7,7 +7,7 @@
     Unk_Face = 0x02,
     StaticVert = 0x0C,
     SkinnedVert = 0x0F,
-    UvAndUnk = 0x10,
+    TangentAndUVs = 0x10,
     Unk_Vert30 = 0x30,
     Unk_Vert70 = 0x70,
   }

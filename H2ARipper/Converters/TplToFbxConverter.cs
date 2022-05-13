@@ -59,6 +59,7 @@ namespace H2ARipper.Converters
       meshNode.AddChildNode( submeshNode );
 
       var uvs = submeshEntity.CreateElementUV( TextureMapping.Diffuse, MappingMode.ControlPoint, ReferenceMode.Direct );
+      var tangents = submeshEntity.CreateElement( VertexElementType.Tangent, MappingMode.ControlPoint, ReferenceMode.Direct ) as VertexElementTangent;
       foreach ( var meshBuffer in meshData.Buffers )
       {
         var buffer = bufferData[ ( int ) meshBuffer.BufferId ];
@@ -138,14 +139,15 @@ namespace H2ARipper.Converters
             }
           }
           break;
-          case S3D_GeometryBufferType.UvAndUnk:
+          case S3D_GeometryBufferType.TangentAndUVs:
           {
             var subBufferOffset = submeshBufferInfo.VertexOffset * buffer.ElementSize;
             reader.Seek( startOffset + subBufferOffset, SeekOrigin.Begin );
 
             for ( var i = 0; i < submeshBufferInfo.VertexCount; i++ )
             {
-              var unk = reader.ReadInt32(); // Normals? Blend Indices?
+              var tangentVec = ReadDirectionalVector( reader );
+              tangents.Data.Add( tangentVec );
 
               var u = reader.ReadInt16().ToSNorm();
               var v = 1 - reader.ReadInt16().ToSNorm();
@@ -211,6 +213,22 @@ namespace H2ARipper.Converters
       submeshNode.Transform.Scale = new Vector3( scale.X * scaleFactor, scale.Y * scaleFactor, scale.Z * scaleFactor );
 
       return submeshNode;
+    }
+
+    private static Vector4 ReadDirectionalVector( EndianBinaryReader reader )
+    {
+      var data = reader.ReadUInt32();
+
+      float Unpack( ulong value )
+        => ( ( ( value & 0xFF ) / 255.0f ) - 0.5f ) * 2.0f;
+
+      // Unpack the tangent
+      var x = Unpack( ( ulong ) data >> 0x00 );
+      var y = Unpack( ( ulong ) data >> 0x08 );
+      var z = Unpack( ( ulong ) data >> 0x10 );
+      var w = Unpack( ( ulong ) data >> 0x18 );
+
+      return new Vector4( x, y, z, w );
     }
 
   }
