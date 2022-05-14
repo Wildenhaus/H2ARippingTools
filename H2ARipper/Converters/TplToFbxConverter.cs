@@ -59,7 +59,7 @@ namespace H2ARipper.Converters
       meshNode.AddChildNode( submeshNode );
 
       var uvs = submeshEntity.CreateElementUV( TextureMapping.Diffuse, MappingMode.ControlPoint, ReferenceMode.Direct );
-      var tangents = submeshEntity.CreateElement( VertexElementType.Tangent, MappingMode.ControlPoint, ReferenceMode.Direct ) as VertexElementTangent;
+      var normals = submeshEntity.CreateElement( VertexElementType.Normal, MappingMode.ControlPoint, ReferenceMode.Direct ) as VertexElementNormal;
       foreach ( var meshBuffer in meshData.Buffers )
       {
         var buffer = bufferData[ ( int ) meshBuffer.BufferId ];
@@ -122,7 +122,7 @@ namespace H2ARipper.Converters
               var x = reader.ReadInt16().ToSNorm();
               var y = reader.ReadInt16().ToSNorm();
               var z = reader.ReadInt16().ToSNorm();
-              var w = reader.ReadInt16().ToSNorm();
+              var w = reader.ReadInt16(); // W is packed vertex normal
 
               // TODO: Bones and Weights
               var weight1 = reader.ReadByte();
@@ -135,19 +135,19 @@ namespace H2ARipper.Converters
               var bone3 = reader.ReadByte();
               var bone4 = reader.ReadByte();
 
-              submeshEntity.ControlPoints.Add( new Vector4( x, y, z, w ) );
+              submeshEntity.ControlPoints.Add( new Vector4( x, y, z, 1 ) );
+              normals.Data.Add( UnpackW( w ) );
             }
           }
           break;
-          case S3D_GeometryBufferType.TangentAndUVs:
+          case S3D_GeometryBufferType.UVs:
           {
             var subBufferOffset = submeshBufferInfo.VertexOffset * buffer.ElementSize;
             reader.Seek( startOffset + subBufferOffset, SeekOrigin.Begin );
 
             for ( var i = 0; i < submeshBufferInfo.VertexCount; i++ )
             {
-              var tangentVec = ReadDirectionalVector( reader );
-              tangents.Data.Add( tangentVec );
+              _ = reader.ReadInt32(); // Unk
 
               var u = reader.ReadInt16().ToSNorm();
               var v = 1 - reader.ReadInt16().ToSNorm();
@@ -162,8 +162,8 @@ namespace H2ARipper.Converters
 
             for ( var i = 0; i < submeshBufferInfo.VertexCount; i++ )
             {
-              _ = reader.ReadInt32(); // Unk: Normal?
-              _ = reader.ReadInt32(); // Unk: Binormal?
+              _ = reader.ReadInt32(); // Unk:
+              _ = reader.ReadInt32(); // Unk:
 
               var u1 = reader.ReadInt16().ToSNorm();
               var v1 = 1 - reader.ReadInt16().ToSNorm();
@@ -182,9 +182,9 @@ namespace H2ARipper.Converters
 
             for ( var i = 0; i < submeshBufferInfo.VertexCount; i++ )
             {
-              _ = reader.ReadInt32(); // Unk: Normal?
-              _ = reader.ReadInt32(); // Unk: Binormal?
-              _ = reader.ReadInt32(); // Unk: Tangents?
+              _ = reader.ReadInt32(); // Unk
+              _ = reader.ReadInt32(); // Unk
+              _ = reader.ReadInt32(); // Unk
 
               var u1 = reader.ReadInt16().ToSNorm();
               var v1 = 1 - reader.ReadInt16().ToSNorm();
@@ -215,20 +215,19 @@ namespace H2ARipper.Converters
       return submeshNode;
     }
 
-    private static Vector4 ReadDirectionalVector( EndianBinaryReader reader )
+    private static Vector4 UnpackW( short w )
     {
-      var data = reader.ReadUInt32();
+      float sign( short value )
+        => value > 0 ? 1 : value < 0 ? -1 : 0;
 
-      float Unpack( ulong value )
-        => ( ( ( value & 0xFF ) / 255.0f ) - 0.5f ) * 2.0f;
+      float frac( float value )
+        => value % 1;
 
-      // Unpack the tangent
-      var x = Unpack( ( ulong ) data >> 0x00 );
-      var y = Unpack( ( ulong ) data >> 0x08 );
-      var z = Unpack( ( ulong ) data >> 0x10 );
-      var w = Unpack( ( ulong ) data >> 0x18 );
+      var x = ( -1f + 2f * frac( ( 1.0f / 181 ) * Math.Abs( w ) ) ) * ( 181.0f / 179f );
+      var z = ( -1f + 2f * frac( ( 1.0f / 181.0f / 181.0f ) * Math.Abs( w ) ) ) * ( 181.0f / 180.0f );
+      var y = sign( w ) * MathF.Sqrt( 1.0f - ( x * x ) - ( z * z ) );
 
-      return new Vector4( x, y, z, w );
+      return new Vector4( x, y, z, sign( w ) );
     }
 
   }
