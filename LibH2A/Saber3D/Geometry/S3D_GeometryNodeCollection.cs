@@ -15,8 +15,8 @@ namespace LibH2A.Saber3D.Geometry
 
     #region Data Members
 
-    private ushort _nodeCount;
-    private ushort _sectionCount;
+    private uint _nodeCount;
+    private uint _sectionCount;
 
     private List<S3D_GeometryNode> _nodes;
     private List<S3D_BoundingBox> _boundingBoxes;
@@ -92,21 +92,21 @@ namespace LibH2A.Saber3D.Geometry
       if ( nodeData._sectionCount >= 2 )
         ReadSection_NodeNames( nodeData, reader );
       if ( nodeData._sectionCount >= 3 )
-        ReadSection_UnkSection03( nodeData, reader );
+        ReadSection_UnkSection03( nodeData, reader ); // "flags"
       if ( nodeData._sectionCount >= 4 )
-        ReadSection_UnkSection04( nodeData, reader );
+        ReadSection_UnkSection04( nodeData, reader ); // parenting
       if ( nodeData._sectionCount >= 5 )
-        ReadSection_UnkSection05( nodeData, reader );
+        ReadSection_UnkSection05( nodeData, reader ); // indices
       if ( nodeData._sectionCount >= 6 )
-        ReadSection_UnkSection06( nodeData, reader );
+        ReadSection_UnkSection06( nodeData, reader ); // more indices
       if ( nodeData._sectionCount >= 7 )
-        ReadSection_UnkSection07( nodeData, reader );
+        ReadSection_UnkSection07( nodeData, reader ); // MORE INDICES
       if ( nodeData._sectionCount >= 8 )
-        ReadSection_UnkSection08( nodeData, reader );
+        ReadSection_UnkSection08( nodeData, reader ); // even more indicalccaes
       if ( nodeData._sectionCount >= 9 )
-        ReadSection_UnkSection09( nodeData, reader );
+        ReadSection_UnkSection09( nodeData, reader ); // export properties
       if ( nodeData._sectionCount >= 10 )
-        ReadSection_UnkSection10( nodeData, reader );
+        ReadSection_UnkSection10( nodeData, reader ); // matricies 
       if ( nodeData._sectionCount >= 11 )
         ReadSection_UnkSection11( nodeData, reader );
       if ( nodeData._sectionCount >= 12 )
@@ -135,17 +135,20 @@ namespace LibH2A.Saber3D.Geometry
 
     private static void ReadSectionInfo( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )
     {
+      // 0x04 - 0x0A
       _ = reader.ReadUInt16(); // Unk
       _ = reader.ReadUInt16(); // Unk
       _ = reader.ReadUInt16(); // Unk
 
+      // 0x0A
       _ = reader.ReadByte();
 
-      geometry._nodeCount = reader.ReadUInt16();
+      // 0x0B
+      geometry._nodeCount = reader.ReadUInt32();
 
-      _ = reader.ReadUInt16(); // Unk
-      geometry._sectionCount = reader.ReadUInt16(); // Unk
-      _ = reader.ReadUInt16(); // Unk
+      // 0x0F
+      // You had as two shorts, but I dont think this is the case.
+      geometry._sectionCount = reader.ReadUInt32(); // Unk I think this is type
     }
 
     private static void ReadSection_NodeIndices( S3D_GeometryNodeCollection geometry, EndianBinaryReader reader )

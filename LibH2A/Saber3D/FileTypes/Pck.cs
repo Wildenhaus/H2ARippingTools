@@ -1,10 +1,13 @@
-﻿// Edit: 5/13 - Zatarita
+﻿// Creation Zatarita: 05/12
+
+// Edit: 5/13 - Zatarita
 //   Changes:
 //     Created the class
 //     Removed caching data over memory paging issues
 //   Todo:
 //      MEMORY MANAGEMENT
 
+using LibH2A.Saber3D.Shared;
 
 namespace Saber3D.FileTypes
 {
@@ -24,12 +27,7 @@ namespace Saber3D.FileTypes
       // Loads the data into memory if it hasn't already, then returns the data.
       public byte[] Data( in BinaryReader stream )
       {
-        var data = new byte[ Size ];
-
-        stream.BaseStream.Seek( Offset, SeekOrigin.Begin );
-        stream.Read( data, 0, ( int ) Size );
-
-        return data;
+        return StreamHelpers.ReadBytesFromStream( stream.BaseStream, (int)Size, Offset );
       }
     }
 
@@ -100,13 +98,13 @@ namespace Saber3D.FileTypes
       int count = _parser.ReadInt32();
 
       _ = _parser.ReadInt32();        // Burn unknown
-      _ = _parser.ReadChar();         // Burn delimiter
+      StreamHelpers.StreamIsAlligned( _parser.BaseStream );
 
       List<string> names = ParseNames( count );
-      _ = _parser.ReadChar();         // Burn delimiter
+      StreamHelpers.StreamIsAlligned( _parser.BaseStream );
 
       List<long> offsets = ParseOffsets( count );
-      _ = _parser.ReadChar();         // Burn delimiter
+      StreamHelpers.StreamIsAlligned( _parser.BaseStream );
 
       List<int> sizes = ParseSizes( count );
 

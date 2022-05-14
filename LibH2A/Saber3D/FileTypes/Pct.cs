@@ -1,8 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Creation Zatarita: 05/13
+
+// Edit 5/14: Zatarita
+//   Changes:
+//     Migrated sentinels from tuple to shared struct
+
+using LibH2A.Saber3D.Shared;
+
 
 namespace Saber3D.FileTypes
 {
@@ -54,8 +57,8 @@ namespace Saber3D.FileTypes
 
             while(Parser.BaseStream.Position != Parser.BaseStream.Length)
             {
-                var (sentinel, size) = ParseSentinel(Parser);
-                switch(sentinel)
+                var sentinel = Sentinel.FromStream(Parser);
+                switch(sentinel.ID)
                 {
                 case (short) Sentinels.HEADER:
                     if(!ReadHeader(Parser)) 
@@ -71,25 +74,14 @@ namespace Saber3D.FileTypes
                     ReadMips(Parser);
                     continue;
                 case (short) Sentinels.PIXELS:
-                    ReadPixels(Parser, size);
+                    ReadPixels(Parser, sentinel);
                     continue;
                 case (short) Sentinels.FOOTER:
-                    ReadFooter(Parser);
                     continue;
                 default:
                     throw new ArgumentException();
                 }
             }
-        }
-
-        private static (short, int) ParseSentinel(in BinaryReader stream)
-        {
-            short sent  = stream.ReadInt16();
-            int   eob   = stream.ReadInt32();
-
-            //byte[] data = stream.ReadBytes( (int)(eob - stream.BaseStream.Position) );
-
-            return (sent, (int)(eob - stream.BaseStream.Position));
         }
 
         private bool ReadHeader(in BinaryReader stream)
@@ -118,14 +110,9 @@ namespace Saber3D.FileTypes
             MipMaps = stream.ReadInt32();
         }
 
-        private void ReadPixels(in BinaryReader stream, int size)
+        private void ReadPixels(in BinaryReader stream, Sentinel sent)
         {
-            Pixels = stream.ReadBytes(size);
-        }
-
-        private void ReadFooter(in BinaryReader stream)
-        {
-            // There actually isnt anything in the footer c:
+            Pixels = sent.DataFromStream( stream.BaseStream );
         }
 
 
