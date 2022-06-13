@@ -1,3 +1,11 @@
+# NOTE
+
+This repository is deprecated. 
+
+The new repository is [Reclaimer.Saber3D](https://github.com/Wildenhaus/Reclaimer.Saber3D). 
+
+It has been re-written for stability, versatility, and will eventually have plug-in support for Reclaimer.
+
 # H2ARippingTools
 
 Experimental tool for ripping Halo 2 Anniversary (Campaign) assets.
